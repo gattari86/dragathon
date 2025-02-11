@@ -14,7 +14,7 @@
         }
         .character-container {
             width: 250px;
-            height: 350px;
+            height: 400px;
             margin: auto;
             background-color: #ddd;
             border-radius: 10px;
@@ -45,6 +45,15 @@
             font-weight: bold;
             color: #800080;
         }
+        .remove-button {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
         .quote {
             font-style: italic;
             font-size: 1.2em;
@@ -74,12 +83,12 @@
         const canvas = document.getElementById("characterCanvas");
         const ctx = canvas.getContext("2d");
         canvas.width = 250;
-        canvas.height = 350;
+        canvas.height = 400;
 
         const characterState = {
-            makeup: [],
-            wig: [],
-            outfit: [],
+            makeup: null,
+            wig: null,
+            outfit: null,
             accessories: []
         };
 
@@ -113,31 +122,32 @@
             ctx.fillRect(100, 220, 20, 50);
             ctx.fillRect(130, 220, 20, 50);
             
-            // Apply selected options
-            characterState.makeup.forEach(drawMakeup);
-            characterState.wig.forEach(drawWig);
-            characterState.outfit.forEach(drawOutfit);
+            if (characterState.wig) drawWig(characterState.wig);
+            if (characterState.makeup) drawMakeup(characterState.makeup);
+            if (characterState.outfit) drawOutfit(characterState.outfit);
             characterState.accessories.forEach(drawAccessory);
         }
 
         function drawMakeup(option) {
-            ctx.fillStyle = "red";
+            ctx.fillStyle = option;
             ctx.fillRect(115, 75, 20, 5);
         }
 
         function drawWig(option) {
-            ctx.fillStyle = option === "Curly" ? "brown" : "blonde";
+            ctx.fillStyle = option;
             ctx.beginPath();
-            ctx.arc(125, 35, 45, 0, Math.PI * 2);
+            ctx.moveTo(85, 30);
+            ctx.lineTo(165, 30);
+            ctx.lineTo(125, 20);
             ctx.fill();
         }
 
         function drawOutfit(option) {
-            ctx.fillStyle = option === "Fierce" ? "red" : "purple";
+            ctx.fillStyle = option;
             ctx.beginPath();
             ctx.moveTo(90, 100);
             ctx.lineTo(160, 100);
-            ctx.lineTo(125, 220);
+            ctx.lineTo(125, 250);
             ctx.fill();
         }
 
@@ -147,31 +157,46 @@
         }
 
         function selectOption(category, option) {
-            characterState[category].push(option);
+            if (category === "accessories") {
+                characterState[category].push(option);
+            } else {
+                characterState[category] = option;
+            }
             drawCharacter();
         }
 
-        function saveLook() {
-            alert("Your fabulous look has been saved! Werk!");
+        function removeOption(category, option) {
+            if (category === "accessories") {
+                characterState[category] = characterState[category].filter(item => item !== option);
+            } else {
+                characterState[category] = null;
+            }
+            drawCharacter();
+        }
+
+        function generateOptions(category, containerId, options, colors) {
+            const container = document.getElementById(containerId);
+            options.forEach((option, index) => {
+                let btn = document.createElement("button");
+                btn.classList.add("option-button");
+                btn.innerText = option;
+                btn.onclick = () => selectOption(category, colors[index]);
+                container.appendChild(btn);
+
+                let removeBtn = document.createElement("button");
+                removeBtn.classList.add("remove-button");
+                removeBtn.innerText = "X";
+                removeBtn.onclick = () => removeOption(category, colors[index]);
+                container.appendChild(removeBtn);
+            });
         }
 
         drawCharacter();
 
-        function generateOptions(category, containerId, options) {
-            const container = document.getElementById(containerId);
-            options.forEach(option => {
-                let btn = document.createElement("button");
-                btn.classList.add("option-button");
-                btn.innerText = option;
-                btn.onclick = () => selectOption(category, option);
-                container.appendChild(btn);
-            });
-        }
-
-        generateOptions("makeup", "makeupOptions", ["None", "Glamorous", "Bold", "Classic"]);
-        generateOptions("wig", "wigOptions", ["Short", "Long", "Curly", "Straight"]);
-        generateOptions("outfit", "outfitOptions", ["Casual", "Extravagant", "Fierce", "Elegant"]);
-        generateOptions("accessories", "accessoryOptions", ["None", "Crown", "Feather Boa", "Earrings"]);
+        generateOptions("makeup", "makeupOptions", ["Red Lips", "Blue Eyeshadow"], ["red", "blue"]);
+        generateOptions("wig", "wigOptions", ["Short", "Long"], ["brown", "blonde"]);
+        generateOptions("outfit", "outfitOptions", ["Casual", "Glamorous"], ["pink", "purple"]);
+        generateOptions("accessories", "accessoryOptions", ["Crown", "Feather Boa"], ["gold", "silver"]);
     </script>
 </body>
 </html>
