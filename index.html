@@ -6,197 +6,59 @@
     <title>Drag Queen Customizer</title>
     <style>
         body {
-            font-family: "Arial", sans-serif;
-            background: linear-gradient(to bottom, #ff69b4, #800080);
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-        .character-container {
-            width: 250px;
-            height: 400px;
-            margin: auto;
-            background-color: #ddd;
-            border-radius: 10px;
+            margin: 0;
+            padding: 0;
             display: flex;
+            justify-content: center;
             align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border: 5px solid white;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ff69b4, #9370db);
+            font-family: Arial, sans-serif;
         }
-        canvas {
-            width: 100%;
-            height: 100%;
-        }
-        .options {
+        #gameContainer {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+        }
+        #canvas {
+            border: 5px solid #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        #controls {
+            margin-top: 20px;
+            display: flex;
             flex-wrap: wrap;
+            justify-content: center;
             gap: 10px;
-            margin-top: 10px;
         }
-        .option-button {
-            background: white;
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
             border: none;
-            padding: 10px;
             border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            color: #800080;
-        }
-        .remove-button {
-            background: red;
+            background-color: #ff69b4;
             color: white;
-            border: none;
-            padding: 5px;
-            border-radius: 5px;
-            font-size: 12px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
-        .quote {
-            font-style: italic;
-            font-size: 1.2em;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 5px;
-            border-radius: 5px;
+        button:hover {
+            background-color: #ff1493;
         }
     </style>
 </head>
 <body>
-    <h1>Drag Queen Customizer</h1>
-    <div class="character-container">
-        <canvas id="characterCanvas"></canvas>
+    <div id="gameContainer">
+        <canvas id="canvas" width="600" height="800"></canvas>
+        <div id="controls">
+            <button id="makeupBtn">Makeup</button>
+            <button id="wigBtn">Wig</button>
+            <button id="outfitBtn">Outfit</button>
+            <button id="accessoryBtn">Accessory</button>
+            <button id="saveLookBtn">Save Look</button>
+        </div>
     </div>
-    <p id="quote" class="quote">Let's get fabulous!</p>
-    <h3>Makeup</h3>
-    <div class="options" id="makeupOptions"></div>
-    <h3>Wigs</h3>
-    <div class="options" id="wigOptions"></div>
-    <h3>Outfit</h3>
-    <div class="options" id="outfitOptions"></div>
-    <h3>Accessories</h3>
-    <div class="options" id="accessoryOptions"></div>
-    <button onclick="saveLook()" style="margin-top: 20px; padding: 10px; background: yellow; border: none; border-radius: 5px; font-weight: bold;">Save Look</button>
-    
-    <script>
-        const canvas = document.getElementById("characterCanvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = 250;
-        canvas.height = 400;
-
-        const characterState = {
-            makeup: null,
-            wig: null,
-            outfit: null,
-            accessories: []
-        };
-
-        function drawCharacter() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Head
-            ctx.fillStyle = "beige";
-            ctx.beginPath();
-            ctx.arc(125, 60, 40, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Face
-            ctx.fillStyle = "black";
-            ctx.beginPath();
-            ctx.arc(110, 50, 5, 0, Math.PI * 2);
-            ctx.arc(140, 50, 5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillRect(118, 70, 15, 5);
-            
-            // Arms
-            ctx.fillStyle = "beige";
-            ctx.fillRect(50, 120, 30, 10);
-            ctx.fillRect(170, 120, 30, 10);
-            
-            // Torso
-            ctx.fillRect(90, 100, 70, 120);
-            
-            // Legs
-            ctx.fillStyle = "black";
-            ctx.fillRect(100, 220, 20, 50);
-            ctx.fillRect(130, 220, 20, 50);
-            
-            if (characterState.wig) drawWig(characterState.wig);
-            if (characterState.makeup) drawMakeup(characterState.makeup);
-            if (characterState.outfit) drawOutfit(characterState.outfit);
-            characterState.accessories.forEach(drawAccessory);
-        }
-
-        function drawMakeup(option) {
-            ctx.fillStyle = option;
-            ctx.fillRect(115, 75, 20, 5);
-        }
-
-        function drawWig(option) {
-            ctx.fillStyle = option;
-            ctx.beginPath();
-            ctx.moveTo(85, 30);
-            ctx.lineTo(165, 30);
-            ctx.lineTo(125, 20);
-            ctx.fill();
-        }
-
-        function drawOutfit(option) {
-            ctx.fillStyle = option;
-            ctx.beginPath();
-            ctx.moveTo(90, 100);
-            ctx.lineTo(160, 100);
-            ctx.lineTo(125, 250);
-            ctx.fill();
-        }
-
-        function drawAccessory(option) {
-            ctx.fillStyle = "gold";
-            ctx.fillRect(115, 90, 20, 10);
-        }
-
-        function selectOption(category, option) {
-            if (category === "accessories") {
-                characterState[category].push(option);
-            } else {
-                characterState[category] = option;
-            }
-            drawCharacter();
-        }
-
-        function removeOption(category, option) {
-            if (category === "accessories") {
-                characterState[category] = characterState[category].filter(item => item !== option);
-            } else {
-                characterState[category] = null;
-            }
-            drawCharacter();
-        }
-
-        function generateOptions(category, containerId, options, colors) {
-            const container = document.getElementById(containerId);
-            options.forEach((option, index) => {
-                let btn = document.createElement("button");
-                btn.classList.add("option-button");
-                btn.innerText = option;
-                btn.onclick = () => selectOption(category, colors[index]);
-                container.appendChild(btn);
-
-                let removeBtn = document.createElement("button");
-                removeBtn.classList.add("remove-button");
-                removeBtn.innerText = "X";
-                removeBtn.onclick = () => removeOption(category, colors[index]);
-                container.appendChild(removeBtn);
-            });
-        }
-
-        drawCharacter();
-
-        generateOptions("makeup", "makeupOptions", ["Red Lips", "Blue Eyeshadow"], ["red", "blue"]);
-        generateOptions("wig", "wigOptions", ["Short", "Long"], ["brown", "blonde"]);
-        generateOptions("outfit", "outfitOptions", ["Casual", "Glamorous"], ["pink", "purple"]);
-        generateOptions("accessories", "accessoryOptions", ["Crown", "Feather Boa"], ["gold", "silver"]);
-    </script>
+    <script src="game.js"></script>
 </body>
 </html>
+
+
