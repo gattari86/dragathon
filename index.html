@@ -76,71 +76,102 @@
         canvas.width = 250;
         canvas.height = 350;
 
-        function drawBaseCharacter() {
+        const characterState = {
+            makeup: [],
+            wig: [],
+            outfit: [],
+            accessories: []
+        };
+
+        function drawCharacter() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Head
             ctx.fillStyle = "beige";
-            ctx.fillRect(75, 50, 100, 150); // Head and torso
+            ctx.beginPath();
+            ctx.arc(125, 60, 40, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Face
             ctx.fillStyle = "black";
-            ctx.fillRect(90, 200, 20, 50); // Left leg
-            ctx.fillRect(140, 200, 20, 50); // Right leg
+            ctx.beginPath();
+            ctx.arc(110, 50, 5, 0, Math.PI * 2);
+            ctx.arc(140, 50, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillRect(118, 70, 15, 5);
+            
+            // Arms
+            ctx.fillStyle = "beige";
+            ctx.fillRect(50, 120, 30, 10);
+            ctx.fillRect(170, 120, 30, 10);
+            
+            // Torso
+            ctx.fillRect(90, 100, 70, 120);
+            
+            // Legs
+            ctx.fillStyle = "black";
+            ctx.fillRect(100, 220, 20, 50);
+            ctx.fillRect(130, 220, 20, 50);
+            
+            // Apply selected options
+            characterState.makeup.forEach(drawMakeup);
+            characterState.wig.forEach(drawWig);
+            characterState.outfit.forEach(drawOutfit);
+            characterState.accessories.forEach(drawAccessory);
         }
 
-        const dragQueenQuotes = ["Werk, queen!", "Yasss, hunty!", "Slay all day!", "Serving looks!", "Category is: fabulous!", "Shantay, you stay!"];
-        const audioFiles = ["audio/werk.mp3", "audio/yasss.mp3", "audio/slay.mp3", "audio/serving.mp3", "audio/category.mp3", "audio/shantay.mp3"];
-
-        function generateOptions(category, containerId, applyEffect) {
-            const container = document.getElementById(containerId);
-            category.forEach(option => {
-                let btn = document.createElement("button");
-                btn.classList.add("option-button");
-                btn.innerText = option;
-                btn.onclick = () => applyEffect(option);
-                container.appendChild(btn);
-            });
-        }
-
-        function applyMakeup(option) {
-            drawBaseCharacter();
+        function drawMakeup(option) {
             ctx.fillStyle = "red";
-            ctx.fillRect(110, 80, 30, 5); // Lips
-            if (option !== "None") {
-                ctx.fillStyle = "blue";
-                ctx.fillRect(100, 60, 15, 10); // Left eye makeup
-                ctx.fillRect(135, 60, 15, 10); // Right eye makeup
-            }
+            ctx.fillRect(115, 75, 20, 5);
         }
 
-        function applyWig(option) {
-            drawBaseCharacter();
+        function drawWig(option) {
             ctx.fillStyle = option === "Curly" ? "brown" : "blonde";
             ctx.beginPath();
-            ctx.arc(125, 40, 35, 0, Math.PI * 2);
+            ctx.arc(125, 35, 45, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        function applyOutfit(option) {
-            drawBaseCharacter();
+        function drawOutfit(option) {
             ctx.fillStyle = option === "Fierce" ? "red" : "purple";
-            ctx.fillRect(75, 110, 100, 100);
+            ctx.beginPath();
+            ctx.moveTo(90, 100);
+            ctx.lineTo(160, 100);
+            ctx.lineTo(125, 220);
+            ctx.fill();
         }
 
-        function applyAccessory(option) {
-            drawBaseCharacter();
+        function drawAccessory(option) {
             ctx.fillStyle = "gold";
-            ctx.fillRect(115, 95, 20, 10);
+            ctx.fillRect(115, 90, 20, 10);
+        }
+
+        function selectOption(category, option) {
+            characterState[category].push(option);
+            drawCharacter();
         }
 
         function saveLook() {
             alert("Your fabulous look has been saved! Werk!");
         }
 
-        drawBaseCharacter();
+        drawCharacter();
 
-        generateOptions(["None", "Glamorous", "Bold", "Classic"], "makeupOptions", applyMakeup);
-        generateOptions(["Short", "Long", "Curly", "Straight"], "wigOptions", applyWig);
-        generateOptions(["Casual", "Extravagant", "Fierce", "Elegant"], "outfitOptions", applyOutfit);
-        generateOptions(["None", "Crown", "Feather Boa", "Earrings"], "accessoryOptions", applyAccessory);
+        function generateOptions(category, containerId, options) {
+            const container = document.getElementById(containerId);
+            options.forEach(option => {
+                let btn = document.createElement("button");
+                btn.classList.add("option-button");
+                btn.innerText = option;
+                btn.onclick = () => selectOption(category, option);
+                container.appendChild(btn);
+            });
+        }
+
+        generateOptions("makeup", "makeupOptions", ["None", "Glamorous", "Bold", "Classic"]);
+        generateOptions("wig", "wigOptions", ["Short", "Long", "Curly", "Straight"]);
+        generateOptions("outfit", "outfitOptions", ["Casual", "Extravagant", "Fierce", "Elegant"]);
+        generateOptions("accessories", "accessoryOptions", ["None", "Crown", "Feather Boa", "Earrings"]);
     </script>
 </body>
 </html>
-
