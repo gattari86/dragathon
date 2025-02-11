@@ -3,62 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag Queen Customizer</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #ff69b4, #9370db);
-            font-family: Arial, sans-serif;
-        }
-        #gameContainer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #canvas {
-            border: 5px solid #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        }
-        #controls {
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: #ff69b4;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #ff1493;
-        }
-    </style>
+    <title>Fabulous Drag Queen Customizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="gameContainer">
-        <canvas id="canvas" width="600" height="800"></canvas>
-        <div id="controls">
-            <button id="makeupBtn">Makeup</button>
-            <button id="wigBtn">Wig</button>
-            <button id="outfitBtn">Outfit</button>
-            <button id="accessoryBtn">Accessory</button>
-            <button id="saveLookBtn">Save Look</button>
+        <h1>Fabulous Drag Queen Customizer</h1>
+        <div id="canvasContainer">
+            <canvas id="canvas"></canvas>
         </div>
+        <div id="controlsContainer">
+            <div id="categoryButtons">
+                <button class="categoryBtn active" data-category="makeup">Makeup</button>
+                <button class="categoryBtn" data-category="hair">Hair</button>
+                <button class="categoryBtn" data-category="outfit">Outfit</button>
+                <button class="categoryBtn" data-category="accessories">Accessories</button>
+            </div>
+            <div id="optionsContainer"></div>
+            <div id="colorPicker" class="hidden">
+                <input type="color" id="colorInput">
+                <button id="applyColor">Apply Color</button>
+            </div>
+        </div>
+        <button id="saveLookBtn">Save Look</button>
+        <div id="quoteContainer"></div>
     </div>
     <script src="game.js"></script>
 </body>
 </html>
+
+
 
 
