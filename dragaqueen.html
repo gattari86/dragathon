@@ -1,0 +1,79 @@
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+
+const makeupOptions = ["None", "Glamorous", "Bold", "Classic"];
+const outfitOptions = ["Casual", "Extravagant", "Fierce", "Elegant"];
+const accessoryOptions = ["None", "Crown", "Feather Boa", "Earrings"];
+const dragQueenQuotes = [
+  "Werk, queen!", 
+  "Yasss, hunty!", 
+  "Slay all day!", 
+  "Serving looks!", 
+  "Category is: fabulous!", 
+  "Shantay, you stay!"
+];
+
+const DragQueenCustomizer = () => {
+  const [makeup, setMakeup] = useState("None");
+  const [outfit, setOutfit] = useState("Casual");
+  const [accessory, setAccessory] = useState("None");
+  const [quote, setQuote] = useState("Let's get fabulous!");
+
+  const handleSelection = (setter, value) => {
+    setter(value);
+    setQuote(dragQueenQuotes[Math.floor(Math.random() * dragQueenQuotes.length)]);
+  };
+
+  return (
+    <div className="flex flex-col items-center p-6 w-full h-screen bg-gradient-to-b from-pink-500 to-purple-700 text-white">
+      <h1 className="text-2xl font-bold mb-4 text-center">Drag Queen Customizer</h1>
+      <motion.div className="w-48 h-72 bg-gray-200 rounded-lg flex items-center justify-center mb-4" animate={{ scale: 1.1 }}>
+        <img src="/mnt/data/A_realistic_3D-style_game_character_resembling_a_f.png" alt="Drag Queen Character" className="w-full h-full object-cover rounded-lg" />
+      </motion.div>
+      <p className="italic text-lg mb-4 text-center">{quote}</p>
+      <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
+        <Card>
+          <CardContent>
+            <label className="font-semibold text-center block">Makeup</label>
+            <div className="flex flex-wrap justify-center gap-2 mt-2">
+              {makeupOptions.map(option => (
+                <button key={option} onClick={() => handleSelection(setMakeup, option)} className={`p-2 border rounded-lg ${makeup === option ? 'bg-gray-300' : ''}`}>
+                  <img src={`/images/makeup/${option.toLowerCase()}.png`} alt={option} className="w-16 h-16" />
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <label className="font-semibold text-center block">Outfit</label>
+            <div className="flex flex-wrap justify-center gap-2 mt-2">
+              {outfitOptions.map(option => (
+                <button key={option} onClick={() => handleSelection(setOutfit, option)} className={`p-2 border rounded-lg ${outfit === option ? 'bg-gray-300' : ''}`}>
+                  <img src={`/images/outfits/${option.toLowerCase()}.png`} alt={option} className="w-16 h-16" />
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <label className="font-semibold text-center block">Accessories</label>
+            <div className="flex flex-wrap justify-center gap-2 mt-2">
+              {accessoryOptions.map(option => (
+                <button key={option} onClick={() => handleSelection(setAccessory, option)} className={`p-2 border rounded-lg ${accessory === option ? 'bg-gray-300' : ''}`}>
+                  <img src={`/images/accessories/${option.toLowerCase()}.png`} alt={option} className="w-16 h-16" />
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <Button className="mt-4 w-full max-w-xs p-3 text-lg bg-yellow-400 text-black rounded-lg" onClick={() => alert(`Your drag queen look: ${outfit} outfit, ${makeup} makeup, and ${accessory}`)}>Save Look</Button>
+    </div>
+  );
+};
+
+export default DragQueenCustomizer;
