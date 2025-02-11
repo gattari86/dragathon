@@ -15,25 +15,45 @@ const state = {
   skinTone: "#FFE0BD",
   makeup: [],
   hair: null,
-  outfit: null,
+  breastSize: "medium",
+  outfit: {
+    top: null,
+    bottom: null,
+    fullBody: null,
+  },
   accessories: [],
 }
 
 // Colors for each category
 const colors = {
   skinTone: "#FFE0BD",
-  makeup: "#FF69B4",
+  eyeshadow: "#FF69B4",
+  lipstick: "#FF0000",
+  blush: "#FF6B6B",
+  eyeliner: "#000000",
+  contour: "#B8860B",
+  highlighter: "#FFD700",
   hair: "#8B4513",
   outfit: "#9370DB",
-  accessories: "#FFD700",
+  necklace: "#FFD700",
+  earrings: "#FFD700",
+  crown: "#FFD700",
+  boa: "#FF69B4",
+  gloves: "#FFFFFF",
+  handbag: "#000000",
 }
 
 // Customization options
 const options = {
   skinTone: ["light", "medium", "dark", "deep"],
-  makeup: ["eyeshadow", "lipstick", "blush", "eyeliner", "contour", "highlighter"],
+  makeup: ["eyeshadow", "lipstick", "blush", "eyeliner", "contour", "highlighter", "eyelashes"],
   hair: ["long", "short", "curly", "updo", "mohawk", "pigtails"],
-  outfit: ["ballgown", "mermaid", "jumpsuit", "minidress", "catsuit", "pantsuit"],
+  breastSize: ["small", "medium", "large"],
+  outfit: {
+    top: ["tank top", "crop top", "blouse", "corset"],
+    bottom: ["skirt", "pants", "shorts"],
+    fullBody: ["ballgown", "mermaid", "jumpsuit", "minidress", "catsuit", "pantsuit"],
+  },
   accessories: ["crown", "necklace", "earrings", "boa", "gloves", "handbag"],
 }
 
@@ -44,7 +64,7 @@ const presetLooks = [
     skinTone: "light",
     makeup: ["eyeshadow", "lipstick"],
     hair: "updo",
-    outfit: "ballgown",
+    outfit: { top: "ballgown", bottom: null, fullBody: "ballgown" },
     accessories: ["necklace", "earrings"],
   },
   {
@@ -52,7 +72,7 @@ const presetLooks = [
     skinTone: "medium",
     makeup: ["eyeliner", "contour"],
     hair: "mohawk",
-    outfit: "catsuit",
+    outfit: { top: null, bottom: null, fullBody: "catsuit" },
     accessories: ["gloves", "earrings"],
   },
   {
@@ -60,7 +80,7 @@ const presetLooks = [
     skinTone: "dark",
     makeup: ["eyeshadow", "lipstick", "blush"],
     hair: "curly",
-    outfit: "jumpsuit",
+    outfit: { top: null, bottom: null, fullBody: "jumpsuit" },
     accessories: ["boa", "crown"],
   },
 ]
@@ -94,9 +114,28 @@ document.querySelectorAll(".categoryBtn").forEach((btn) => {
     btn.classList.add("active")
     currentCategory = btn.dataset.category
     showOptions(currentCategory)
-    colorInput.value = colors[currentCategory]
+    if (currentCategory === "makeup" || currentCategory === "accessories") {
+      const activeOption = document.querySelector(`.optionBtn.active`)
+      if (activeOption) {
+        colorInput.value = colors[activeOption.textContent]
+      }
+    } else {
+      colorInput.value = colors[currentCategory]
+    }
     addGlowEffect(btn)
   })
+})
+
+colorInput.addEventListener("change", () => {
+  if (currentCategory === "makeup" || currentCategory === "accessories") {
+    const activeOption = document.querySelector(`.optionBtn.active`)
+    if (activeOption) {
+      colors[activeOption.textContent] = colorInput.value
+    }
+  } else {
+    colors[currentCategory] = colorInput.value
+  }
+  updateCanvas()
 })
 
 applyColorBtn.addEventListener("click", () => {
@@ -125,29 +164,50 @@ document.getElementById("controlsContainer").appendChild(presetSelect)
 // Functions
 function showOptions(category) {
   optionsContainer.innerHTML = ""
-  options[category].forEach((option) => {
-    const btn = document.createElement("button")
-    btn.textContent = option
-    btn.classList.add("optionBtn")
-    if (
-      (category === "skinTone" && state.skinTone === option) ||
-      (category === "hair" && state.hair === option) ||
-      (category === "outfit" && state.outfit === option) ||
-      state.makeup.includes(option) ||
-      state.accessories.includes(option)
-    ) {
-      btn.classList.add("active")
-    }
-    btn.addEventListener("click", () => {
-      applyOption(category, option)
-      btn.classList.toggle("active")
-      playSound("select")
+  if (category === "outfit") {
+    Object.keys(options.outfit).forEach((subCategory) => {
+      const subCategoryDiv = document.createElement("div")
+      subCategoryDiv.classList.add("sub-category")
+      const subCategoryTitle = document.createElement("h3")
+      subCategoryTitle.textContent = subCategory.charAt(0).toUpperCase() + subCategory.slice(1)
+      subCategoryDiv.appendChild(subCategoryTitle)
+      options.outfit[subCategory].forEach((option) => {
+        const btn = createOptionButton(category, option, subCategory)
+        subCategoryDiv.appendChild(btn)
+      })
+      optionsContainer.appendChild(subCategoryDiv)
     })
-    optionsContainer.appendChild(btn)
-  })
+  } else {
+    options[category].forEach((option) => {
+      const btn = createOptionButton(category, option)
+      optionsContainer.appendChild(btn)
+    })
+  }
 }
 
-function applyOption(category, option) {
+function createOptionButton(category, option, subCategory = null) {
+  const btn = document.createElement("button")
+  btn.textContent = option
+  btn.classList.add("optionBtn")
+  if (
+    (category === "skinTone" && state.skinTone === option) ||
+    (category === "hair" && state.hair === option) ||
+    (category === "breastSize" && state.breastSize === option) ||
+    (category === "outfit" && subCategory && state.outfit[subCategory] === option) ||
+    (category === "makeup" && state.makeup.includes(option)) ||
+    (category === "accessories" && state.accessories.includes(option))
+  ) {
+    btn.classList.add("active")
+  }
+  btn.addEventListener("click", () => {
+    applyOption(category, option, subCategory)
+    btn.classList.toggle("active")
+    playSound("select")
+  })
+  return btn
+}
+
+function applyOption(category, option, subCategory = null) {
   if (category === "skinTone") {
     state.skinTone = option
     colors.skinTone = getSkinToneColor(option)
@@ -163,6 +223,17 @@ function applyOption(category, option) {
     } else {
       state.accessories = state.accessories.filter((item) => item !== option)
     }
+  } else if (category === "outfit") {
+    if (subCategory === "fullBody") {
+      state.outfit.top = null
+      state.outfit.bottom = null
+      state.outfit.fullBody = option
+    } else {
+      state.outfit.fullBody = null
+      state.outfit[subCategory] = state.outfit[subCategory] === option ? null : option
+    }
+  } else if (category === "breastSize") {
+    state.breastSize = option
   } else {
     state[category] = state[category] === option ? null : option
   }
@@ -174,7 +245,7 @@ function applyOption(category, option) {
 function updateCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   if (state.hair) drawHair(state.hair)
-  if (state.outfit) drawOutfit(state.outfit)
+  drawOutfit()
   drawCharacterBase()
   state.makeup.forEach((item) => drawMakeup(item))
   state.accessories.forEach((item) => drawAccessory(item))
@@ -215,6 +286,17 @@ function drawCharacterBase() {
   ctx.beginPath()
   ctx.moveTo(200, 300)
   ctx.lineTo(300, 300)
+  // Draw breast shape
+  ctx.fillStyle = colors.skinTone
+  const breastSizes = {
+    small: 20,
+    medium: 30,
+    large: 40,
+  }
+  const breastSize = breastSizes[state.breastSize]
+  ctx.beginPath()
+  ctx.moveTo(200, 300)
+  ctx.quadraticCurveTo(250, 300 - breastSize, 300, 300)
   ctx.quadraticCurveTo(350, 350, 300, 400)
   ctx.lineTo(200, 400)
   ctx.quadraticCurveTo(150, 350, 200, 300)
@@ -271,7 +353,101 @@ function drawHair(style) {
   }
 }
 
-function drawOutfit(style) {
+function drawOutfit() {
+  if (state.outfit.fullBody) {
+    drawFullBodyOutfit(state.outfit.fullBody)
+  } else {
+    if (state.outfit.top) drawTop(state.outfit.top)
+    if (state.outfit.bottom) drawBottom(state.outfit.bottom)
+  }
+}
+
+function drawTop(style) {
+  ctx.fillStyle = colors.outfit
+  switch (style) {
+    case "tank top":
+      ctx.beginPath()
+      ctx.moveTo(200, 300)
+      ctx.lineTo(220, 400)
+      ctx.lineTo(280, 400)
+      ctx.lineTo(300, 300)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case "crop top":
+      ctx.beginPath()
+      ctx.moveTo(200, 300)
+      ctx.lineTo(220, 350)
+      ctx.lineTo(280, 350)
+      ctx.lineTo(300, 300)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case "blouse":
+      ctx.beginPath()
+      ctx.moveTo(180, 300)
+      ctx.quadraticCurveTo(250, 280, 320, 300)
+      ctx.lineTo(320, 400)
+      ctx.lineTo(180, 400)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case "corset":
+      ctx.beginPath()
+      ctx.moveTo(200, 300)
+      ctx.quadraticCurveTo(250, 280, 300, 300)
+      ctx.lineTo(280, 400)
+      ctx.lineTo(220, 400)
+      ctx.closePath()
+      ctx.fill()
+      // Draw corset laces
+      ctx.strokeStyle = "#FFFFFF"
+      ctx.lineWidth = 2
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath()
+        ctx.moveTo(240, 320 + i * 20)
+        ctx.lineTo(260, 320 + i * 20)
+        ctx.stroke()
+      }
+      break
+  }
+}
+
+function drawBottom(style) {
+  ctx.fillStyle = colors.outfit
+  switch (style) {
+    case "skirt":
+      ctx.beginPath()
+      ctx.moveTo(220, 400)
+      ctx.quadraticCurveTo(250, 420, 280, 400)
+      ctx.quadraticCurveTo(300, 550, 280, 680)
+      ctx.lineTo(220, 680)
+      ctx.quadraticCurveTo(200, 550, 220, 400)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case "pants":
+      ctx.beginPath()
+      ctx.moveTo(220, 400)
+      ctx.lineTo(240, 680)
+      ctx.lineTo(260, 680)
+      ctx.lineTo(280, 400)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case "shorts":
+      ctx.beginPath()
+      ctx.moveTo(220, 400)
+      ctx.lineTo(240, 500)
+      ctx.lineTo(260, 500)
+      ctx.lineTo(280, 400)
+      ctx.closePath()
+      ctx.fill()
+      break
+  }
+}
+
+function drawFullBodyOutfit(style) {
   ctx.fillStyle = colors.outfit
   switch (style) {
     case "ballgown":
@@ -364,15 +540,34 @@ function drawOutfit(style) {
 }
 
 function drawMakeup(type) {
-  ctx.fillStyle = colors.makeup
   switch (type) {
     case "eyeshadow":
+      ctx.fillStyle = colors.eyeshadow
       ctx.beginPath()
-      ctx.ellipse(220, 175, 25, 15, 0, 0, Math.PI * 2)
-      ctx.ellipse(280, 175, 25, 15, 0, 0, Math.PI * 2)
+      ctx.moveTo(200, 170)
+      ctx.quadraticCurveTo(220, 160, 240, 170)
+      ctx.quadraticCurveTo(220, 190, 200, 170)
+      ctx.moveTo(260, 170)
+      ctx.quadraticCurveTo(280, 160, 300, 170)
+      ctx.quadraticCurveTo(280, 190, 260, 170)
       ctx.fill()
       break
+    case "eyelashes":
+      ctx.strokeStyle = "#000000"
+      ctx.lineWidth = 2
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath()
+        ctx.moveTo(210 + i * 8, 170)
+        ctx.lineTo(205 + i * 8, 160)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(270 + i * 8, 170)
+        ctx.lineTo(265 + i * 8, 160)
+        ctx.stroke()
+      }
+      break
     case "lipstick":
+      ctx.fillStyle = colors.lipstick
       ctx.beginPath()
       ctx.moveTo(230, 240)
       ctx.quadraticCurveTo(250, 260, 270, 240)
@@ -380,14 +575,14 @@ function drawMakeup(type) {
       ctx.fill()
       break
     case "blush":
-      ctx.fillStyle = `${colors.makeup}80`
+      ctx.fillStyle = `${colors.blush}80`
       ctx.beginPath()
       ctx.arc(200, 220, 20, 0, Math.PI * 2)
       ctx.arc(300, 220, 20, 0, Math.PI * 2)
       ctx.fill()
       break
     case "eyeliner":
-      ctx.strokeStyle = colors.makeup
+      ctx.strokeStyle = colors.eyeliner
       ctx.lineWidth = 2
       ctx.beginPath()
       ctx.moveTo(200, 175)
@@ -397,7 +592,7 @@ function drawMakeup(type) {
       ctx.stroke()
       break
     case "contour":
-      ctx.fillStyle = `${colors.makeup}40`
+      ctx.fillStyle = `${colors.contour}40`
       ctx.beginPath()
       ctx.moveTo(200, 220)
       ctx.quadraticCurveTo(220, 260, 250, 280)
@@ -405,7 +600,7 @@ function drawMakeup(type) {
       ctx.fill()
       break
     case "highlighter":
-      ctx.fillStyle = `${colors.makeup}80`
+      ctx.fillStyle = `${colors.highlighter}80`
       ctx.beginPath()
       ctx.moveTo(250, 200)
       ctx.quadraticCurveTo(270, 220, 290, 200)
@@ -416,7 +611,7 @@ function drawMakeup(type) {
 }
 
 function drawAccessory(type) {
-  ctx.fillStyle = colors.accessories
+  ctx.fillStyle = colors[type]
   switch (type) {
     case "crown":
       ctx.beginPath()
@@ -431,11 +626,25 @@ function drawAccessory(type) {
       ctx.fill()
       break
     case "necklace":
-      ctx.strokeStyle = colors.accessories
+      ctx.strokeStyle = colors.necklace
       ctx.lineWidth = 3
       ctx.beginPath()
       ctx.arc(250, 350, 50, 0, Math.PI)
       ctx.stroke()
+      // Add diamonds
+      ctx.fillStyle = "#FFFFFF"
+      for (let i = 0; i < 5; i++) {
+        const angle = Math.PI * (0.1 + i * 0.2)
+        const x = 250 + Math.cos(angle) * 50
+        const y = 350 + Math.sin(angle) * 50
+        ctx.beginPath()
+        ctx.moveTo(x, y - 5)
+        ctx.lineTo(x - 3, y)
+        ctx.lineTo(x, y + 5)
+        ctx.lineTo(x + 3, y)
+        ctx.closePath()
+        ctx.fill()
+      }
       break
     case "earrings":
       ctx.beginPath()
@@ -480,15 +689,86 @@ function showQuote() {
 function saveLook() {
   const dataURL = canvas.toDataURL("image/png")
 
-  // Create a temporary link element
-  const link = document.createElement("a")
-  link.href = dataURL
-  link.download = "my-fabulous-drag-queen.png"
+  // Check if the device is mobile
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
-  // Simulate a click on the link to trigger the download
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  if (isMobile) {
+    // Open a new window with the image
+    const newWindow = window.open()
+    if (newWindow) {
+      newWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Your Fabulous Drag Queen</title>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            body {
+                                margin: 0;
+                                padding: 0;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                                min-height: 100vh;
+                                background: linear-gradient(135deg, #ff69b4, #9370db);
+                                font-family: Arial, sans-serif;
+                            }
+                            img {
+                                max-width: 100%;
+                                height: auto;
+                                border: 5px solid white;
+                                border-radius: 10px;
+                                box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+                            }
+                            h1 {
+                                color: white;
+                                text-align: center;
+                                margin-bottom: 20px;
+                                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+                            }
+                            .save-btn {
+                                margin-top: 20px;
+                                padding: 10px 20px;
+                                font-size: 18px;
+                                background-color: #4CAF50;
+                                color: white;
+                                border: none;
+                                border-radius: 5px;
+                                cursor: pointer;
+                                transition: background-color 0.3s;
+                            }
+                            .save-btn:hover {
+                                background-color: #45a049;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Your Fabulous Drag Queen</h1>
+                        <img src="${dataURL}" alt="Your Fabulous Drag Queen">
+                        <button class="save-btn" onclick="saveImage()">Save Image</button>
+                        <script>
+                            function saveImage() {
+                                const link = document.createElement('a');
+                                link.href = '${dataURL}';
+                                link.download = 'my-fabulous-drag-queen.png';
+                                link.click();
+                            }
+                        </script>
+                    </body>
+                </html>
+            `)
+    } else {
+      alert("Unable to open a new window. Please check your browser settings.")
+    }
+  } else {
+    // For desktop, keep the existing download functionality
+    const link = document.createElement("a")
+    link.href = dataURL
+    link.download = "my-fabulous-drag-queen.png"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   showQuote()
   quoteContainer.textContent = "Sashay You Stay! Your look has been saved, queen! 💖👑"
@@ -499,7 +779,10 @@ function randomizeLook() {
   state.skinTone = getRandomOption("skinTone")
   state.makeup = getRandomOptions("makeup", Math.floor(Math.random() * 4) + 1)
   state.hair = getRandomOption("hair")
-  state.outfit = getRandomOption("outfit")
+  state.breastSize = getRandomOption("breastSize")
+  state.outfit.top = getRandomOption("outfit").top[Math.floor(Math.random() * options.outfit.top.length)]
+  state.outfit.bottom = getRandomOption("outfit").bottom[Math.floor(Math.random() * options.outfit.bottom.length)]
+  state.outfit.fullBody = null
   state.accessories = getRandomOptions("accessories", Math.floor(Math.random() * 3) + 1)
 
   updateCanvas()
@@ -508,8 +791,18 @@ function randomizeLook() {
 }
 
 function getRandomOption(category) {
+  const categoryplaySound
+  ;("select")
+}
+
+function getRandomOption(category) {
   const categoryOptions = options[category]
-  return categoryOptions[Math.floor(Math.random() * categoryOptions.length)]
+  if (Array.isArray(categoryOptions)) {
+    return categoryOptions[Math.floor(Math.random() * categoryOptions.length)]
+  } else {
+    const keys = Object.keys(categoryOptions)
+    return categoryOptions[keys[Math.floor(Math.random() * keys.length)]]
+  }
 }
 
 function getRandomOptions(category, count) {
@@ -525,7 +818,11 @@ function applyPresetLook(event) {
     state.skinTone = look.skinTone
     state.makeup = look.makeup
     state.hair = look.hair
-    state.outfit = look.outfit
+    state.outfit = {
+      top: look.outfit.top || null,
+      bottom: look.outfit.bottom || null,
+      fullBody: look.outfit.fullBody || null,
+    }
     state.accessories = look.accessories
 
     updateCanvas()
