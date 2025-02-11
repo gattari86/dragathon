@@ -33,6 +33,11 @@ const quotes = [
   "Serving looks! 👀✨",
   "Fierce and fabulous! 🔥",
   "Category is: Eleganza Extravaganza! 🌟",
+  "Yes, queen! 💖",
+  "Yas, honey! 🍯",
+  "Sickening! 💅",
+  "Werk that runway! 👠",
+  "Shantay, you stay! 🌈",
 ]
 
 // Colors
@@ -99,9 +104,9 @@ function applyOption(category, option) {
 
 function updateCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
-  drawCharacterBase()
-  if (state.outfit) drawOutfit(state.outfit)
   if (state.hair) drawHair(state.hair)
+  if (state.outfit) drawOutfit(state.outfit)
+  drawCharacterBase()
   state.makeup.forEach((item) => drawMakeup(item))
   state.accessories.forEach((item) => drawAccessory(item))
 }
