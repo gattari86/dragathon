@@ -18,6 +18,14 @@
             margin: auto;
             background-color: gray;
             border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
         }
         .options {
             display: flex;
@@ -32,11 +40,6 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        .option-button img {
-            width: 50px;
-            height: 50px;
-            border-radius: 5px;
-        }
         .quote {
             font-style: italic;
             font-size: 1.2em;
@@ -46,7 +49,7 @@
 <body>
     <h1>Drag Queen Customizer</h1>
     <div class="character-container">
-        <img id="characterImage" src="/mnt/data/male_character.png" alt="Drag Queen Character" style="width: 100%; height: 100%; border-radius: 10px;">
+        <canvas id="characterCanvas"></canvas>
     </div>
     <p id="quote" class="quote">Let's get fabulous!</p>
     <h3>Makeup</h3>
@@ -58,42 +61,48 @@
     <button onclick="saveLook()" style="margin-top: 20px; padding: 10px; background: yellow; border: none; border-radius: 5px;">Save Look</button>
     
     <script>
-        const makeupOptions = ["None", "Glamorous", "Bold", "Classic"];
-        const outfitOptions = ["Casual", "Extravagant", "Fierce", "Elegant"];
-        const accessoryOptions = ["None", "Crown", "Feather Boa", "Earrings"];
-        const dragQueenQuotes = ["Werk, queen!", "Yasss, hunty!", "Slay all day!", "Serving looks!", "Category is: fabulous!", "Shantay, you stay!"];
-        const audioFiles = ["werk.mp3", "yasss.mp3", "slay.mp3", "serving.mp3", "category.mp3", "shantay.mp3"];
+        const canvas = document.getElementById("characterCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 200;
+        canvas.height = 300;
 
-        function generateOptions(category, containerId, folder) {
+        const baseCharacter = new Image();
+        baseCharacter.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='300'><rect width='200' height='300' fill='lightgray'/><circle cx='100' cy='80' r='40' fill='beige'/><rect x='70' y='120' width='60' height='100' fill='darkblue'/></svg>";
+        
+        baseCharacter.onload = () => {
+            ctx.drawImage(baseCharacter, 0, 0, 200, 300);
+        };
+
+        const dragQueenQuotes = ["Werk, queen!", "Yasss, hunty!", "Slay all day!", "Serving looks!", "Category is: fabulous!", "Shantay, you stay!"];
+        const audioFiles = ["audio/werk.mp3", "audio/yasss.mp3", "audio/slay.mp3", "audio/serving.mp3", "audio/category.mp3", "audio/shantay.mp3"];
+
+        function generateOptions(category, containerId, color) {
             const container = document.getElementById(containerId);
             category.forEach(option => {
                 let btn = document.createElement("button");
                 btn.classList.add("option-button");
-                btn.onclick = () => selectOption(option, folder, containerId);
-                let img = document.createElement("img");
-                img.src = `/mnt/data/${folder}.png`;
-                img.alt = option;
-                btn.appendChild(img);
+                btn.innerText = option;
+                btn.onclick = () => selectOption(color);
                 container.appendChild(btn);
             });
         }
 
-        function selectOption(option, folder, category) {
+        function selectOption(color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(70, 120, 60, 100);
+            
             const randomIndex = Math.floor(Math.random() * dragQueenQuotes.length);
             document.getElementById("quote").innerText = dragQueenQuotes[randomIndex];
-            new Audio(`/mnt/data/${audioFiles[randomIndex]}`).play();
-            
-            let characterImage = document.getElementById("characterImage");
-            characterImage.src = `/mnt/data/updated_${category}_${option.toLowerCase()}.png`;
+            new Audio(audioFiles[randomIndex]).play();
         }
 
         function saveLook() {
             alert("Your fabulous look has been saved! Werk!");
         }
 
-        generateOptions(makeupOptions, "makeupOptions", "A_set_of_small,_stylized_icons_representing_differ");
-        generateOptions(outfitOptions, "outfitOptions", "A_set_of_small,_stylized_icons_representing_differ");
-        generateOptions(accessoryOptions, "accessoryOptions", "A_set_of_small,_stylized_icons_representing_differ");
+        generateOptions(["None", "Glamorous", "Bold", "Classic"], "makeupOptions", "red");
+        generateOptions(["Casual", "Extravagant", "Fierce", "Elegant"], "outfitOptions", "blue");
+        generateOptions(["None", "Crown", "Feather Boa", "Earrings"], "accessoryOptions", "gold");
     </script>
 </body>
 </html>
