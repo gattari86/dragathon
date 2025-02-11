@@ -18,6 +18,14 @@ const state = {
   accessories: [],
 }
 
+// Colors for each category
+const colors = {
+  makeup: "#FF69B4",
+  hair: "#8B4513",
+  outfit: "#9370DB",
+  accessories: "#FFD700",
+}
+
 // Customization options
 const options = {
   makeup: ["eyeshadow", "lipstick", "blush", "eyeliner"],
@@ -40,20 +48,21 @@ const quotes = [
   "Shantay, you stay! 🌈",
 ]
 
-// Colors
-let currentColor = "#FF69B4"
+let currentCategory = "makeup"
 
 // Event listeners
 document.querySelectorAll(".categoryBtn").forEach((btn) => {
   btn.addEventListener("click", () => {
     document.querySelector(".categoryBtn.active").classList.remove("active")
     btn.classList.add("active")
-    showOptions(btn.dataset.category)
+    currentCategory = btn.dataset.category
+    showOptions(currentCategory)
+    colorInput.value = colors[currentCategory]
   })
 })
 
 applyColorBtn.addEventListener("click", () => {
-  currentColor = colorInput.value
+  colors[currentCategory] = colorInput.value
   updateCanvas()
 })
 
@@ -153,7 +162,7 @@ function drawCharacterBase() {
 }
 
 function drawHair(style) {
-  ctx.fillStyle = currentColor
+  ctx.fillStyle = colors.hair
   switch (style) {
     case "long":
       ctx.beginPath()
@@ -189,9 +198,18 @@ function drawHair(style) {
 }
 
 function drawOutfit(style) {
-  ctx.fillStyle = currentColor
+  ctx.fillStyle = colors.outfit
   switch (style) {
     case "ballgown":
+      // Top part
+      ctx.beginPath()
+      ctx.moveTo(200, 300)
+      ctx.quadraticCurveTo(250, 280, 300, 300)
+      ctx.lineTo(320, 400)
+      ctx.lineTo(180, 400)
+      ctx.closePath()
+      ctx.fill()
+      // Bottom part
       ctx.beginPath()
       ctx.moveTo(180, 400)
       ctx.quadraticCurveTo(100, 550, 180, 680)
@@ -201,6 +219,15 @@ function drawOutfit(style) {
       ctx.fill()
       break
     case "mermaid":
+      // Top part
+      ctx.beginPath()
+      ctx.moveTo(200, 300)
+      ctx.quadraticCurveTo(250, 280, 300, 300)
+      ctx.lineTo(320, 400)
+      ctx.lineTo(180, 400)
+      ctx.closePath()
+      ctx.fill()
+      // Bottom part
       ctx.beginPath()
       ctx.moveTo(180, 400)
       ctx.quadraticCurveTo(250, 500, 200, 600)
@@ -211,19 +238,22 @@ function drawOutfit(style) {
       break
     case "jumpsuit":
       ctx.beginPath()
-      ctx.moveTo(180, 400)
-      ctx.lineTo(200, 680)
-      ctx.lineTo(300, 680)
+      ctx.moveTo(200, 300)
+      ctx.quadraticCurveTo(250, 280, 300, 300)
       ctx.lineTo(320, 400)
+      ctx.lineTo(300, 680)
+      ctx.lineTo(200, 680)
+      ctx.lineTo(180, 400)
       ctx.closePath()
       ctx.fill()
       break
     case "minidress":
       ctx.beginPath()
-      ctx.moveTo(180, 400)
-      ctx.quadraticCurveTo(250, 450, 180, 500)
-      ctx.lineTo(320, 500)
-      ctx.quadraticCurveTo(250, 450, 320, 400)
+      ctx.moveTo(200, 300)
+      ctx.quadraticCurveTo(250, 280, 300, 300)
+      ctx.quadraticCurveTo(320, 350, 300, 500)
+      ctx.lineTo(200, 500)
+      ctx.quadraticCurveTo(180, 350, 200, 300)
       ctx.closePath()
       ctx.fill()
       break
@@ -231,16 +261,15 @@ function drawOutfit(style) {
 }
 
 function drawMakeup(type) {
+  ctx.fillStyle = colors.makeup
   switch (type) {
     case "eyeshadow":
-      ctx.fillStyle = currentColor
       ctx.beginPath()
       ctx.ellipse(220, 175, 25, 15, 0, 0, Math.PI * 2)
       ctx.ellipse(280, 175, 25, 15, 0, 0, Math.PI * 2)
       ctx.fill()
       break
     case "lipstick":
-      ctx.fillStyle = currentColor
       ctx.beginPath()
       ctx.moveTo(230, 240)
       ctx.quadraticCurveTo(250, 260, 270, 240)
@@ -248,14 +277,14 @@ function drawMakeup(type) {
       ctx.fill()
       break
     case "blush":
-      ctx.fillStyle = `${currentColor}80`
+      ctx.fillStyle = `${colors.makeup}80`
       ctx.beginPath()
       ctx.arc(200, 220, 20, 0, Math.PI * 2)
       ctx.arc(300, 220, 20, 0, Math.PI * 2)
       ctx.fill()
       break
     case "eyeliner":
-      ctx.strokeStyle = "#000"
+      ctx.strokeStyle = colors.makeup
       ctx.lineWidth = 2
       ctx.beginPath()
       ctx.moveTo(200, 175)
@@ -268,9 +297,9 @@ function drawMakeup(type) {
 }
 
 function drawAccessory(type) {
+  ctx.fillStyle = colors.accessories
   switch (type) {
     case "crown":
-      ctx.fillStyle = "gold"
       ctx.beginPath()
       ctx.moveTo(200, 100)
       ctx.lineTo(220, 60)
@@ -283,21 +312,19 @@ function drawAccessory(type) {
       ctx.fill()
       break
     case "necklace":
-      ctx.strokeStyle = "silver"
+      ctx.strokeStyle = colors.accessories
       ctx.lineWidth = 3
       ctx.beginPath()
       ctx.arc(250, 350, 50, 0, Math.PI)
       ctx.stroke()
       break
     case "earrings":
-      ctx.fillStyle = "gold"
       ctx.beginPath()
       ctx.arc(160, 200, 10, 0, Math.PI * 2)
       ctx.arc(340, 200, 10, 0, Math.PI * 2)
       ctx.fill()
       break
     case "boa":
-      ctx.fillStyle = currentColor
       for (let i = 0; i < 20; i++) {
         ctx.beginPath()
         ctx.arc(180 + i * 15, 350 + Math.sin(i * 0.5) * 20, 10, 0, Math.PI * 2)
@@ -318,14 +345,24 @@ function showQuote() {
 
 function saveLook() {
   const dataURL = canvas.toDataURL("image/png")
+
+  // Create a temporary link element
   const link = document.createElement("a")
   link.href = dataURL
   link.download = "my-fabulous-drag-queen.png"
+
+  // Simulate a click on the link to trigger the download
+  document.body.appendChild(link)
   link.click()
+  document.body.removeChild(link)
+
   showQuote()
+  quoteContainer.textContent = "Sashay You Stay! Your look has been saved, queen! 💖👑"
 }
 
 // Initialize the game
 showOptions("makeup")
 updateCanvas()
+
+
 
