@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag Queen Customizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, pink, purple);
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        .character-container {
+            width: 200px;
+            height: 300px;
+            margin: auto;
+            background-color: gray;
+            border-radius: 10px;
+        }
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .option-button {
+            background: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .option-button img {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+        }
+        .quote {
+            font-style: italic;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Drag Queen Customizer</h1>
+    <div class="character-container">
+        <img id="characterImage" src="/mnt/data/A_realistic_3D-style_game_character_resembling_a_f.png" alt="Drag Queen Character" style="width: 100%; height: 100%; border-radius: 10px;">
+    </div>
+    <p id="quote" class="quote">Let's get fabulous!</p>
+    <h3>Makeup</h3>
+    <div class="options" id="makeupOptions"></div>
+    <h3>Outfit</h3>
+    <div class="options" id="outfitOptions"></div>
+    <h3>Accessories</h3>
+    <div class="options" id="accessoryOptions"></div>
+    <button onclick="saveLook()" style="margin-top: 20px; padding: 10px; background: yellow; border: none; border-radius: 5px;">Save Look</button>
+    
+    <script>
+        const makeupOptions = ["None", "Glamorous", "Bold", "Classic"];
+        const outfitOptions = ["Casual", "Extravagant", "Fierce", "Elegant"];
+        const accessoryOptions = ["None", "Crown", "Feather Boa", "Earrings"];
+        const dragQueenQuotes = ["Werk, queen!", "Yasss, hunty!", "Slay all day!", "Serving looks!", "Category is: fabulous!", "Shantay, you stay!"];
+
+        function generateOptions(category, containerId) {
+            const container = document.getElementById(containerId);
+            category.forEach(option => {
+                let btn = document.createElement("button");
+                btn.classList.add("option-button");
+                btn.onclick = () => selectOption(option);
+                let img = document.createElement("img");
+                img.src = `/images/${containerId}/${option.toLowerCase()}.png`;
+                img.alt = option;
+                btn.appendChild(img);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectOption(option) {
+            document.getElementById("quote").innerText = dragQueenQuotes[Math.floor(Math.random() * dragQueenQuotes.length)];
+        }
+
+        function saveLook() {
+            alert("Your fabulous look has been saved! Werk!");
+        }
+
+        generateOptions(makeupOptions, "makeupOptions");
+        generateOptions(outfitOptions, "outfitOptions");
+        generateOptions(accessoryOptions, "accessoryOptions");
+    </script>
+</body>
+</html>
