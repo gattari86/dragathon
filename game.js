@@ -1,197 +1,326 @@
 const canvas = document.getElementById("canvas")
 const ctx = canvas.getContext("2d")
+const optionsContainer = document.getElementById("optionsContainer")
+const colorInput = document.getElementById("colorInput")
+const applyColorBtn = document.getElementById("applyColor")
+const quoteContainer = document.getElementById("quoteContainer")
+const saveLookBtn = document.getElementById("saveLookBtn")
+
+// Set canvas size
+canvas.width = 500
+canvas.height = 700
 
 // Game state
 const state = {
-  makeup: null,
-  wig: null,
+  makeup: [],
+  hair: null,
   outfit: null,
   accessories: [],
 }
 
-// Character base
+// Customization options
+const options = {
+  makeup: ["eyeshadow", "lipstick", "blush", "eyeliner"],
+  hair: ["long", "short", "curly", "updo"],
+  outfit: ["ballgown", "mermaid", "jumpsuit", "minidress"],
+  accessories: ["crown", "necklace", "earrings", "boa"],
+}
+
+// Quotes
+const quotes = [
+  "Werk, queen! 👑",
+  "Slay all day! 💃",
+  "Serving looks! 👀✨",
+  "Fierce and fabulous! 🔥",
+  "Category is: Eleganza Extravaganza! 🌟",
+]
+
+// Colors
+let currentColor = "#FF69B4"
+
+// Event listeners
+document.querySelectorAll(".categoryBtn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelector(".categoryBtn.active").classList.remove("active")
+    btn.classList.add("active")
+    showOptions(btn.dataset.category)
+  })
+})
+
+applyColorBtn.addEventListener("click", () => {
+  currentColor = colorInput.value
+  updateCanvas()
+})
+
+saveLookBtn.addEventListener("click", saveLook)
+
+// Functions
+function showOptions(category) {
+  optionsContainer.innerHTML = ""
+  options[category].forEach((option) => {
+    const btn = document.createElement("button")
+    btn.textContent = option
+    btn.classList.add("optionBtn")
+    if (
+      (category === "hair" && state.hair === option) ||
+      (category === "outfit" && state.outfit === option) ||
+      state.makeup.includes(option) ||
+      state.accessories.includes(option)
+    ) {
+      btn.classList.add("active")
+    }
+    btn.addEventListener("click", () => {
+      applyOption(category, option)
+      btn.classList.toggle("active")
+    })
+    optionsContainer.appendChild(btn)
+  })
+}
+
+function applyOption(category, option) {
+  if (category === "makeup") {
+    if (!state.makeup.includes(option)) {
+      state.makeup.push(option)
+    } else {
+      state.makeup = state.makeup.filter((item) => item !== option)
+    }
+  } else if (category === "accessories") {
+    if (!state.accessories.includes(option)) {
+      state.accessories.push(option)
+    } else {
+      state.accessories = state.accessories.filter((item) => item !== option)
+    }
+  } else {
+    state[category] = state[category] === option ? null : option
+  }
+  updateCanvas()
+  showQuote()
+}
+
+function updateCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  drawCharacterBase()
+  if (state.outfit) drawOutfit(state.outfit)
+  if (state.hair) drawHair(state.hair)
+  state.makeup.forEach((item) => drawMakeup(item))
+  state.accessories.forEach((item) => drawAccessory(item))
+}
+
 function drawCharacterBase() {
   // Draw face
   ctx.fillStyle = "#FFE0BD"
   ctx.beginPath()
-  ctx.arc(300, 200, 100, 0, Math.PI * 2)
+  ctx.ellipse(250, 200, 90, 110, 0, 0, Math.PI * 2)
   ctx.fill()
 
   // Draw eyes
   ctx.fillStyle = "#000"
   ctx.beginPath()
-  ctx.arc(260, 180, 10, 0, Math.PI * 2)
-  ctx.arc(340, 180, 10, 0, Math.PI * 2)
+  ctx.ellipse(220, 180, 10, 15, 0, 0, Math.PI * 2)
+  ctx.ellipse(280, 180, 10, 15, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  // Draw nose
+  ctx.beginPath()
+  ctx.moveTo(250, 200)
+  ctx.lineTo(245, 220)
+  ctx.lineTo(255, 220)
+  ctx.closePath()
   ctx.fill()
 
   // Draw lips
   ctx.fillStyle = "#FF69B4"
   ctx.beginPath()
-  ctx.arc(300, 240, 20, 0, Math.PI)
+  ctx.moveTo(230, 240)
+  ctx.quadraticCurveTo(250, 260, 270, 240)
+  ctx.quadraticCurveTo(250, 250, 230, 240)
   ctx.fill()
 
-  // Draw body
+  // Draw neck and shoulders
   ctx.fillStyle = "#FFE0BD"
   ctx.beginPath()
   ctx.moveTo(200, 300)
-  ctx.lineTo(400, 300)
-  ctx.lineTo(350, 700)
-  ctx.lineTo(250, 700)
-  ctx.closePath()
-  ctx.fill()
-
-  // Draw arms
-  ctx.beginPath()
-  ctx.moveTo(200, 300)
-  ctx.lineTo(150, 500)
-  ctx.lineTo(180, 520)
-  ctx.lineTo(240, 340)
-  ctx.closePath()
-  ctx.fill()
-
-  ctx.beginPath()
-  ctx.moveTo(400, 300)
-  ctx.lineTo(450, 500)
-  ctx.lineTo(420, 520)
-  ctx.lineTo(360, 340)
-  ctx.closePath()
+  ctx.lineTo(300, 300)
+  ctx.quadraticCurveTo(350, 350, 300, 400)
+  ctx.lineTo(200, 400)
+  ctx.quadraticCurveTo(150, 350, 200, 300)
   ctx.fill()
 }
 
-// Makeup function
-function applyMakeup(type, color) {
-  ctx.fillStyle = color
-
-  if (type === "lipstick") {
-    ctx.beginPath()
-    ctx.arc(300, 240, 22, 0, Math.PI)
-    ctx.fill()
-  } else if (type === "eyeshadow") {
-    ctx.beginPath()
-    ctx.ellipse(260, 170, 25, 15, 0, 0, Math.PI * 2)
-    ctx.ellipse(340, 170, 25, 15, 0, 0, Math.PI * 2)
-    ctx.fill()
+function drawHair(style) {
+  ctx.fillStyle = currentColor
+  switch (style) {
+    case "long":
+      ctx.beginPath()
+      ctx.moveTo(160, 150)
+      ctx.quadraticCurveTo(250, 100, 340, 150)
+      ctx.quadraticCurveTo(380, 300, 340, 500)
+      ctx.quadraticCurveTo(250, 550, 160, 500)
+      ctx.quadraticCurveTo(120, 300, 160, 150)
+      ctx.fill()
+      break
+    case "short":
+      ctx.beginPath()
+      ctx.arc(250, 180, 110, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    case "curly":
+      for (let i = 0; i < 50; i++) {
+        ctx.beginPath()
+        ctx.arc(160 + Math.random() * 180, 100 + Math.random() * 200, 20 + Math.random() * 30, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      break
+    case "updo":
+      ctx.beginPath()
+      ctx.moveTo(180, 100)
+      ctx.quadraticCurveTo(250, 50, 320, 100)
+      ctx.quadraticCurveTo(350, 150, 320, 200)
+      ctx.quadraticCurveTo(250, 220, 180, 200)
+      ctx.quadraticCurveTo(150, 150, 180, 100)
+      ctx.fill()
+      break
   }
-
-  state.makeup = { type, color }
 }
 
-// Wig function
-function applyWig(style, color) {
-  ctx.fillStyle = color
-
-  if (style === "long") {
-    ctx.beginPath()
-    ctx.moveTo(200, 100)
-    ctx.quadraticCurveTo(300, 50, 400, 100)
-    ctx.quadraticCurveTo(450, 300, 400, 500)
-    ctx.quadraticCurveTo(300, 550, 200, 500)
-    ctx.quadraticCurveTo(150, 300, 200, 100)
-    ctx.fill()
-  } else if (style === "short") {
-    ctx.beginPath()
-    ctx.arc(300, 150, 120, 0, Math.PI * 2)
-    ctx.fill()
+function drawOutfit(style) {
+  ctx.fillStyle = currentColor
+  switch (style) {
+    case "ballgown":
+      ctx.beginPath()
+      ctx.moveTo(180, 400)
+      ctx.quadraticCurveTo(100, 550, 180, 680)
+      ctx.lineTo(320, 680)
+      ctx.quadraticCurveTo(400, 550, 320, 400)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case "mermaid":
+      ctx.beginPath()
+      ctx.moveTo(180, 400)
+      ctx.quadraticCurveTo(250, 500, 200, 600)
+      ctx.quadraticCurveTo(250, 700, 300, 600)
+      ctx.quadraticCurveTo(250, 500, 320, 400)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case "jumpsuit":
+      ctx.beginPath()
+      ctx.moveTo(180, 400)
+      ctx.lineTo(200, 680)
+      ctx.lineTo(300, 680)
+      ctx.lineTo(320, 400)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case "minidress":
+      ctx.beginPath()
+      ctx.moveTo(180, 400)
+      ctx.quadraticCurveTo(250, 450, 180, 500)
+      ctx.lineTo(320, 500)
+      ctx.quadraticCurveTo(250, 450, 320, 400)
+      ctx.closePath()
+      ctx.fill()
+      break
   }
-
-  state.wig = { style, color }
 }
 
-// Outfit function
-function applyOutfit(style, color) {
-  ctx.fillStyle = color
-
-  if (style === "ballgown") {
-    ctx.beginPath()
-    ctx.moveTo(200, 300)
-    ctx.quadraticCurveTo(100, 500, 200, 700)
-    ctx.lineTo(400, 700)
-    ctx.quadraticCurveTo(500, 500, 400, 300)
-    ctx.closePath()
-    ctx.fill()
-  } else if (style === "mermaid") {
-    ctx.beginPath()
-    ctx.moveTo(200, 300)
-    ctx.quadraticCurveTo(300, 400, 250, 600)
-    ctx.quadraticCurveTo(300, 700, 350, 600)
-    ctx.quadraticCurveTo(300, 400, 400, 300)
-    ctx.closePath()
-    ctx.fill()
+function drawMakeup(type) {
+  switch (type) {
+    case "eyeshadow":
+      ctx.fillStyle = currentColor
+      ctx.beginPath()
+      ctx.ellipse(220, 175, 25, 15, 0, 0, Math.PI * 2)
+      ctx.ellipse(280, 175, 25, 15, 0, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    case "lipstick":
+      ctx.fillStyle = currentColor
+      ctx.beginPath()
+      ctx.moveTo(230, 240)
+      ctx.quadraticCurveTo(250, 260, 270, 240)
+      ctx.quadraticCurveTo(250, 250, 230, 240)
+      ctx.fill()
+      break
+    case "blush":
+      ctx.fillStyle = `${currentColor}80`
+      ctx.beginPath()
+      ctx.arc(200, 220, 20, 0, Math.PI * 2)
+      ctx.arc(300, 220, 20, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    case "eyeliner":
+      ctx.strokeStyle = "#000"
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(200, 175)
+      ctx.quadraticCurveTo(220, 170, 240, 175)
+      ctx.moveTo(260, 175)
+      ctx.quadraticCurveTo(280, 170, 300, 175)
+      ctx.stroke()
+      break
   }
-
-  state.outfit = { style, color }
 }
 
-// Accessory function
-function addAccessory(type) {
-  if (type === "crown") {
-    ctx.fillStyle = "gold"
-    ctx.beginPath()
-    ctx.moveTo(250, 80)
-    ctx.lineTo(270, 40)
-    ctx.lineTo(290, 80)
-    ctx.lineTo(310, 40)
-    ctx.lineTo(330, 80)
-    ctx.lineTo(350, 40)
-    ctx.lineTo(370, 80)
-    ctx.closePath()
-    ctx.fill()
-  } else if (type === "necklace") {
-    ctx.strokeStyle = "silver"
-    ctx.lineWidth = 3
-    ctx.beginPath()
-    ctx.arc(300, 300, 50, 0, Math.PI)
-    ctx.stroke()
+function drawAccessory(type) {
+  switch (type) {
+    case "crown":
+      ctx.fillStyle = "gold"
+      ctx.beginPath()
+      ctx.moveTo(200, 100)
+      ctx.lineTo(220, 60)
+      ctx.lineTo(240, 100)
+      ctx.lineTo(260, 60)
+      ctx.lineTo(280, 100)
+      ctx.lineTo(300, 60)
+      ctx.lineTo(320, 100)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case "necklace":
+      ctx.strokeStyle = "silver"
+      ctx.lineWidth = 3
+      ctx.beginPath()
+      ctx.arc(250, 350, 50, 0, Math.PI)
+      ctx.stroke()
+      break
+    case "earrings":
+      ctx.fillStyle = "gold"
+      ctx.beginPath()
+      ctx.arc(160, 200, 10, 0, Math.PI * 2)
+      ctx.arc(340, 200, 10, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    case "boa":
+      ctx.fillStyle = currentColor
+      for (let i = 0; i < 20; i++) {
+        ctx.beginPath()
+        ctx.arc(180 + i * 15, 350 + Math.sin(i * 0.5) * 20, 10, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      break
   }
-
-  state.accessories.push(type)
 }
 
-// Draw function
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-  drawCharacterBase()
-
-  if (state.wig) {
-    applyWig(state.wig.style, state.wig.color)
-  }
-
-  if (state.outfit) {
-    applyOutfit(state.outfit.style, state.outfit.color)
-  }
-
-  if (state.makeup) {
-    applyMakeup(state.makeup.type, state.makeup.color)
-  }
-
-  state.accessories.forEach((accessory) => addAccessory(accessory))
+function showQuote() {
+  const quote = quotes[Math.floor(Math.random() * quotes.length)]
+  quoteContainer.textContent = quote
+  quoteContainer.style.opacity = 1
+  setTimeout(() => {
+    quoteContainer.style.opacity = 0
+  }, 3000)
 }
 
-// Event listeners
-document.getElementById("makeupBtn").addEventListener("click", () => {
-  applyMakeup("lipstick", "#FF0000")
-  draw()
-})
+function saveLook() {
+  const dataURL = canvas.toDataURL("image/png")
+  const link = document.createElement("a")
+  link.href = dataURL
+  link.download = "my-fabulous-drag-queen.png"
+  link.click()
+  showQuote()
+}
 
-document.getElementById("wigBtn").addEventListener("click", () => {
-  applyWig("long", "#FFD700")
-  draw()
-})
-
-document.getElementById("outfitBtn").addEventListener("click", () => {
-  applyOutfit("ballgown", "#FF69B4")
-  draw()
-})
-
-document.getElementById("accessoryBtn").addEventListener("click", () => {
-  addAccessory("crown")
-  draw()
-})
-
-document.getElementById("saveLookBtn").addEventListener("click", () => {
-  alert("Look saved! Work it, queen! 👑✨")
-})
-
-// Initial draw
-draw()
+// Initialize the game
+showOptions("makeup")
+updateCanvas()
 
