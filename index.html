@@ -6,22 +6,23 @@
     <title>Drag Queen Customizer</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to bottom, pink, purple);
+            font-family: "Arial", sans-serif;
+            background: linear-gradient(to bottom, #ff69b4, #800080);
             color: white;
             text-align: center;
             padding: 20px;
         }
         .character-container {
-            width: 200px;
-            height: 300px;
+            width: 250px;
+            height: 350px;
             margin: auto;
-            background-color: gray;
+            background-color: #ddd;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            border: 5px solid white;
         }
         canvas {
             width: 100%;
@@ -30,6 +31,7 @@
         .options {
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             gap: 10px;
             margin-top: 10px;
         }
@@ -39,10 +41,16 @@
             padding: 10px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #800080;
         }
         .quote {
             font-style: italic;
             font-size: 1.2em;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -54,55 +62,85 @@
     <p id="quote" class="quote">Let's get fabulous!</p>
     <h3>Makeup</h3>
     <div class="options" id="makeupOptions"></div>
+    <h3>Wigs</h3>
+    <div class="options" id="wigOptions"></div>
     <h3>Outfit</h3>
     <div class="options" id="outfitOptions"></div>
     <h3>Accessories</h3>
     <div class="options" id="accessoryOptions"></div>
-    <button onclick="saveLook()" style="margin-top: 20px; padding: 10px; background: yellow; border: none; border-radius: 5px;">Save Look</button>
+    <button onclick="saveLook()" style="margin-top: 20px; padding: 10px; background: yellow; border: none; border-radius: 5px; font-weight: bold;">Save Look</button>
     
     <script>
         const canvas = document.getElementById("characterCanvas");
         const ctx = canvas.getContext("2d");
-        canvas.width = 200;
-        canvas.height = 300;
+        canvas.width = 250;
+        canvas.height = 350;
 
-        const baseCharacter = new Image();
-        baseCharacter.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='300'><rect width='200' height='300' fill='lightgray'/><circle cx='100' cy='80' r='40' fill='beige'/><rect x='70' y='120' width='60' height='100' fill='darkblue'/></svg>";
-        
-        baseCharacter.onload = () => {
-            ctx.drawImage(baseCharacter, 0, 0, 200, 300);
-        };
+        function drawBaseCharacter() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "beige";
+            ctx.fillRect(75, 50, 100, 150); // Head and torso
+            ctx.fillStyle = "black";
+            ctx.fillRect(90, 200, 20, 50); // Left leg
+            ctx.fillRect(140, 200, 20, 50); // Right leg
+        }
 
         const dragQueenQuotes = ["Werk, queen!", "Yasss, hunty!", "Slay all day!", "Serving looks!", "Category is: fabulous!", "Shantay, you stay!"];
         const audioFiles = ["audio/werk.mp3", "audio/yasss.mp3", "audio/slay.mp3", "audio/serving.mp3", "audio/category.mp3", "audio/shantay.mp3"];
 
-        function generateOptions(category, containerId, color) {
+        function generateOptions(category, containerId, applyEffect) {
             const container = document.getElementById(containerId);
             category.forEach(option => {
                 let btn = document.createElement("button");
                 btn.classList.add("option-button");
                 btn.innerText = option;
-                btn.onclick = () => selectOption(color);
+                btn.onclick = () => applyEffect(option);
                 container.appendChild(btn);
             });
         }
 
-        function selectOption(color) {
-            ctx.fillStyle = color;
-            ctx.fillRect(70, 120, 60, 100);
-            
-            const randomIndex = Math.floor(Math.random() * dragQueenQuotes.length);
-            document.getElementById("quote").innerText = dragQueenQuotes[randomIndex];
-            new Audio(audioFiles[randomIndex]).play();
+        function applyMakeup(option) {
+            drawBaseCharacter();
+            ctx.fillStyle = "red";
+            ctx.fillRect(110, 80, 30, 5); // Lips
+            if (option !== "None") {
+                ctx.fillStyle = "blue";
+                ctx.fillRect(100, 60, 15, 10); // Left eye makeup
+                ctx.fillRect(135, 60, 15, 10); // Right eye makeup
+            }
+        }
+
+        function applyWig(option) {
+            drawBaseCharacter();
+            ctx.fillStyle = option === "Curly" ? "brown" : "blonde";
+            ctx.beginPath();
+            ctx.arc(125, 40, 35, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function applyOutfit(option) {
+            drawBaseCharacter();
+            ctx.fillStyle = option === "Fierce" ? "red" : "purple";
+            ctx.fillRect(75, 110, 100, 100);
+        }
+
+        function applyAccessory(option) {
+            drawBaseCharacter();
+            ctx.fillStyle = "gold";
+            ctx.fillRect(115, 95, 20, 10);
         }
 
         function saveLook() {
             alert("Your fabulous look has been saved! Werk!");
         }
 
-        generateOptions(["None", "Glamorous", "Bold", "Classic"], "makeupOptions", "red");
-        generateOptions(["Casual", "Extravagant", "Fierce", "Elegant"], "outfitOptions", "blue");
-        generateOptions(["None", "Crown", "Feather Boa", "Earrings"], "accessoryOptions", "gold");
+        drawBaseCharacter();
+
+        generateOptions(["None", "Glamorous", "Bold", "Classic"], "makeupOptions", applyMakeup);
+        generateOptions(["Short", "Long", "Curly", "Straight"], "wigOptions", applyWig);
+        generateOptions(["Casual", "Extravagant", "Fierce", "Elegant"], "outfitOptions", applyOutfit);
+        generateOptions(["None", "Crown", "Feather Boa", "Earrings"], "accessoryOptions", applyAccessory);
     </script>
 </body>
 </html>
+
