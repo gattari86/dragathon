@@ -865,3 +865,4 @@ function playSound(type) {
 // Initialize the game
 showOptions("makeup")
 updateCanvas()
+
