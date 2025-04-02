@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Psychedelic Animation Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'LucideIcons';
+        src: url(https://cdn.jsdelivr.net/npm/lucide-static@latest/font/Lucide.ttf) format('truetype');
+      }
+      .lucide {
+        font-family: 'LucideIcons';
+        font-size: 1.25rem; /* Adjust size as needed */
+        line-height: 1;
+        vertical-align: middle;
+      }
+      /* Basic styling for the canvas container */
+      #canvas-container {
+        width: 100%;
+        height: 60vh; /* Adjust height as needed */
+        max-height: 500px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem; /* rounded-lg */
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-md */
+        background-color: #111; /* Default background */
+      }
+      canvas {
+        display: block; /* Prevent extra space below canvas */
+        width: 100%;
+        height: 100%;
+        position: absolute; /* Needed for transparency */
+        top: 0;
+        left: 0;
+      }
+      /* Style for the recording indicator */
+      #recording-indicator {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 1rem;
+        height: 1rem;
+        background-color: red;
+        border-radius: 50%;
+        display: none; /* Hidden by default */
+        animation: pulse 1.5s infinite;
+        z-index: 10; /* Ensure it's above the canvas */
+      }
+      @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+      }
+      /* Custom button styles */
+        .btn {
+            @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2;
+        }
+        .btn-primary {
+            @apply text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500;
+        }
+        .btn-secondary {
+            @apply text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500;
+        }
+        .btn-danger {
+            @apply text-white bg-red-600 hover:bg-red-700 focus:ring-red-500;
+        }
+        .btn-disabled {
+            @apply bg-gray-300 text-gray-500 cursor-not-allowed;
+        }
+        /* Style for the message box */
+        #message-box {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+        }
+        /* Helper to hide elements */
+        .hidden {
+            display: none;
+        }
+        /* Input base style */
+        .input-base {
+             @apply mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm;
+        }
+        .color-input {
+             @apply p-1 h-10 w-full block bg-white border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-indigo-500 focus:border-indigo-500;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-['Inter'] text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl md:text-3xl font-bold mb-6 text-center text-indigo-700">Psychedelic 3D Animation Generator</h1>
+
+        <div id="canvas-container" class="mb-6">
+            <div id="recording-indicator" title="Recording..."></div>
+            </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="space-y-2">
+                <label for="color-palette" class="block text-sm font-medium text-gray-700">Shape Color Palette:</label>
+                <select id="color-palette" name="color-palette" class="input-base">
+                    <option value="rainbow">Rainbow</option>
+                    <option value="vaporwave">Vaporwave</option>
+                    <option value="forest">Forest</option>
+                    <option value="sunset">Sunset</option>
+                    <option value="monochrome">Monochrome</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <div id="custom-colors" class="hidden space-y-2 mt-2">
+                     <label class="block text-sm font-medium text-gray-700">Custom Colors (2-5):</label>
+                     <input type="color" id="custom-color-1" value="#ff007f" class="color-input">
+                     <input type="color" id="custom-color-2" value="#00f2ff" class="color-input">
+                     <input type="color" id="custom-color-3" value="#a0ff00" class="color-input">
+                     <input type="color" id="custom-color-4" value="#ffdd00" class="color-input">
+                     <input type="color" id="custom-color-5" value="#be00ff" class="color-input">
+                     <div class="flex items-center mt-2">
+                         <input id="use-palette-gradient" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                         <label for="use-palette-gradient" class="ml-2 block text-sm text-gray-900">Use as Gradient</label>
+                     </div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label for="movement-pattern" class="block text-sm font-medium text-gray-700">Movement Pattern:</label>
+                <select id="movement-pattern" name="movement-pattern" class="input-base">
+                    <option value="vortex">Spinning Vortex</option>
+                    <option value="grid">Pulsating Grid</option>
+                    <option value="chaos">Morphing Chaos</option>
+                    <option value="tunnel">Infinite Tunnel</option>
+                    <option value="wave">Geometric Wave</option>
+                </select>
+            </div>
+
+             <div class="space-y-2">
+                <label for="shape-type" class="block text-sm font-medium text-gray-700">Shape Type:</label>
+                <select id="shape-type" name="shape-type" class="input-base">
+                    <option value="cube">Cubes</option>
+                    <option value="sphere">Spheres</option>
+                    <option value="torus">Torus Knots</option>
+                    <option value="icosahedron">Icosahedrons</option>
+                    <option value="mixed">Mixed Shapes</option>
+                </select>
+                 <div class="mt-4 space-y-2">
+                    <label for="shape-count" class="block text-sm font-medium text-gray-700">Shape Count:</label>
+                    <input type="range" id="shape-count" name="shape-count" min="10" max="200" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    <span id="shape-count-label" class="text-sm text-gray-500">50 shapes</span>
+                </div>
+            </div>
+
+             <div class="space-y-2">
+                 <label for="background-type" class="block text-sm font-medium text-gray-700">Background:</label>
+                 <select id="background-type" name="background-type" class="input-base">
+                     <option value="default">Default (Dark)</option>
+                     <option value="solid">Solid Color</option>
+                     <option value="gradient">Linear Gradient</option>
+                 </select>
+                 <div id="solid-color-option" class="hidden mt-2">
+                     <label for="background-color-solid" class="block text-sm font-medium text-gray-700">Background Color:</label>
+                     <input type="color" id="background-color-solid" value="#333333" class="color-input">
+                 </div>
+                 <div id="gradient-color-options" class="hidden space-y-2 mt-2">
+                     <label class="block text-sm font-medium text-gray-700">Gradient Colors:</label>
+                     <input type="color" id="background-color-gradient-1" value="#1e3a8a" class="color-input">
+                     <input type="color" id="background-color-gradient-2" value="#f472b6" class="color-input">
+                     <label for="gradient-direction" class="block text-sm font-medium text-gray-700">Direction:</label>
+                     <select id="gradient-direction" name="gradient-direction" class="input-base">
+                         <option value="to bottom">Top to Bottom</option>
+                         <option value="to right">Left to Right</option>
+                         <option value="to bottom right">Top-Left to Bottom-Right</option>
+                         <option value="to top">Bottom to Top</option>
+                         </select>
+                 </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 pt-6 border-t border-gray-200">
+             <button id="start-record-btn" class="btn btn-primary w-full sm:w-auto">
+                 <span class="lucide mr-2">&#9210;</span> Start Recording
+             </button>
+             <button id="stop-record-btn" class="btn btn-danger w-full sm:w-auto" disabled>
+                 <span class="lucide mr-2">&#9724;</span> Stop Recording
+             </button>
+             <a id="download-link" class="btn btn-secondary w-full sm:w-auto hidden">
+                 <span class="lucide mr-2">&#11123;</span> Download Video
+             </a>
+        </div>
+         <div class="mt-6 text-sm text-gray-600 bg-indigo-50 p-4 rounded-md border border-indigo-200">
+            <h3 class="font-semibold text-indigo-800 mb-2">How to Use:</h3>
+            <ol class="list-decimal list-inside space-y-1">
+                <li>Configure shape colors, movement, type, and count using the controls. Check "Use as Gradient" for smooth color transitions between your custom colors on shapes.</li>
+                <li>Set the background: Choose 'Default', 'Solid Color', or 'Linear Gradient' and select colors/direction as needed.</li>
+                <li>The animation updates live in the preview window.</li>
+                <li>Click "Start Recording" to begin capturing.</li>
+                <li>Click "Stop Recording" when finished.</li>
+                <li>Click "Download Video" to save the recording as a WebM file.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div id="message-box"></div>
+
+    <script>
+        // --- Global Variables ---
+        let scene, camera, renderer, shapes = [], controls;
+        let animationId;
+        let mediaRecorder;
+        let recordedChunks = [];
+        let currentPalette = [];
+        let usePaletteGradient = false; // Flag for custom palette gradient
+        let currentMovement = 'vortex';
+        let currentShapeType = 'cube';
+        let currentShapeCount = 50;
+        const clock = new THREE.Clock();
+        const defaultBgColor = 0x111111; // Store default bg color
+
+        // --- DOM Elements ---
+        const canvasContainer = document.getElementById('canvas-container');
+        const colorPaletteSelect = document.getElementById('color-palette');
+        const customColorsDiv = document.getElementById('custom-colors');
+        const customColorInputs = [
+            document.getElementById('custom-color-1'),
+            document.getElementById('custom-color-2'),
+            document.getElementById('custom-color-3'),
+            document.getElementById('custom-color-4'),
+            document.getElementById('custom-color-5'),
+        ];
+        const usePaletteGradientCheckbox = document.getElementById('use-palette-gradient');
+        const movementPatternSelect = document.getElementById('movement-pattern');
+        const shapeTypeSelect = document.getElementById('shape-type');
+        const shapeCountSlider = document.getElementById('shape-count');
+        const shapeCountLabel = document.getElementById('shape-count-label');
+        const backgroundTypeSelect = document.getElementById('background-type');
+        const solidColorOptionDiv = document.getElementById('solid-color-option');
+        const backgroundColorSolidInput = document.getElementById('background-color-solid');
+        const gradientColorOptionsDiv = document.getElementById('gradient-color-options');
+        const backgroundColorGradient1Input = document.getElementById('background-color-gradient-1');
+        const backgroundColorGradient2Input = document.getElementById('background-color-gradient-2');
+        const gradientDirectionSelect = document.getElementById('gradient-direction');
+        const startRecordBtn = document.getElementById('start-record-btn');
+        const stopRecordBtn = document.getElementById('stop-record-btn');
+        const downloadLink = document.getElementById('download-link');
+        const recordingIndicator = document.getElementById('recording-indicator');
+        const messageBox = document.getElementById('message-box');
+
+
+        // --- Palettes ---
+        const palettes = {
+            rainbow: [0xff0000, 0xff7f00, 0xffff00, 0x00ff00, 0x0000ff, 0x4b0082, 0x9400d3],
+            vaporwave: [0xff71ce, 0x01cdfe, 0x05ffa1, 0xb967ff, 0xfff79a],
+            forest: [0x228b22, 0x556b2f, 0x8fbc8f, 0x006400, 0x9acd32],
+            sunset: [0xff4500, 0xff8c00, 0xffa500, 0xffd700, 0xd2691e],
+            monochrome: [0x000000, 0x444444, 0x888888, 0xcccccc, 0xffffff],
+            custom: [] // Will be populated by user input
+        };
+
+        // --- Initialization ---
+        function init() {
+            // Scene setup
+            scene = new THREE.Scene();
+            // Background setup is handled by updateBackground()
+
+            // Camera setup
+            const aspectRatio = canvasContainer.clientWidth / canvasContainer.clientHeight;
+            camera = new THREE.PerspectiveCamera(75, aspectRatio, 0.1, 1000);
+            camera.position.z = 50;
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                preserveDrawingBuffer: true, // For recording
+                alpha: true // Needed for transparent background / CSS gradient
+            });
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+            // Set initial clear alpha based on default background type
+            renderer.setClearAlpha(1.0); // Default background is solid
+            canvasContainer.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+
+            // Initial setup
+            updatePalette();
+            updateBackground(); // Set initial background
+            createShapes();
+            startAnimation();
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        // --- Shape Creation ---
+        function createShapes() {
+            shapes.forEach(shape => scene.remove(shape));
+            shapes = [];
+            const baseGeometry = getGeometry(currentShapeType); // Get base geometry once
+
+            for (let i = 0; i < currentShapeCount; i++) {
+                // Use baseGeometry.clone() if it's the same type, otherwise get unique for 'mixed'
+                const shapeGeometry = (currentShapeType === 'mixed') ? getGeometry('mixed') : baseGeometry;
+
+                const material = new THREE.MeshStandardMaterial({
+                    color: getRandomPaletteColor(i / currentShapeCount), // Pass normalized index for gradient
+                    roughness: 0.5,
+                    metalness: 0.3,
+                    transparent: true,
+                    opacity: 0.85
+                });
+
+                const shape = new THREE.Mesh(shapeGeometry, material);
+
+                shape.position.set(
+                    (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100
+                );
+                shape.rotation.set(
+                    Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2
+                );
+                shape.scale.setScalar(Math.random() * 2 + 1);
+
+                shapes.push(shape);
+                scene.add(shape);
+            }
+        }
+
+        // --- Geometry Helper ---
+        function getGeometry(type) {
+            // Cache geometries to improve performance (except for 'mixed')
+             if (!getGeometry.cache) getGeometry.cache = {};
+             if (type !== 'mixed' && getGeometry.cache[type]) return getGeometry.cache[type];
+
+            let geometry;
+            switch (type) {
+                case 'sphere': geometry = new THREE.SphereGeometry(1, 32, 16); break;
+                case 'torus': geometry = new THREE.TorusKnotGeometry(0.8, 0.3, 100, 16); break;
+                case 'icosahedron': geometry = new THREE.IcosahedronGeometry(1.2); break;
+                case 'mixed':
+                    const types = ['cube', 'sphere', 'torus', 'icosahedron'];
+                    const randomType = types[Math.floor(Math.random() * types.length)];
+                    return getGeometry(randomType); // Return a random geometry directly
+                case 'cube': default: geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5); break;
+            }
+            if (type !== 'mixed') getGeometry.cache[type] = geometry; // Cache non-mixed types
+            return geometry;
+        }
+
+        // --- Palette Management ---
+        function updatePalette() {
+            const selectedPalette = colorPaletteSelect.value;
+            usePaletteGradient = usePaletteGradientCheckbox.checked && selectedPalette === 'custom';
+
+            if (selectedPalette === 'custom') {
+                customColorsDiv.classList.remove('hidden');
+                currentPalette = customColorInputs
+                    .map(input => new THREE.Color(input.value)) // Store as THREE.Color objects
+                    .filter(color => color); // Filter out invalid colors if any
+
+                if (currentPalette.length < 2) { // Need at least 2 colors for gradient or discrete selection
+                     showMessage("Custom palette needs at least 2 valid colors.", true);
+                     // Fallback to rainbow if not enough colors
+                     currentPalette = palettes.rainbow.map(hex => new THREE.Color(hex));
+                     usePaletteGradient = false; // Disable gradient if falling back
+                }
+            } else {
+                customColorsDiv.classList.add('hidden');
+                currentPalette = palettes[selectedPalette].map(hex => new THREE.Color(hex));
+                 usePaletteGradient = false; // Can't use gradient for predefined palettes
+            }
+
+            // Update existing shapes with new colors
+            shapes.forEach((shape, index) => {
+                if (shape.material) {
+                    shape.material.color.copy(getRandomPaletteColor(index / shapes.length));
+                }
+            });
+        }
+
+        function getRandomPaletteColor(t = Math.random()) { // t is a value from 0 to 1, used for gradients
+             if (currentPalette.length === 0) return new THREE.Color(0xffffff); // Default white
+
+             if (usePaletteGradient && currentPalette.length >= 2) {
+                 // Interpolate across the entire custom palette
+                 const segment = 1 / (currentPalette.length - 1);
+                 const index = Math.min(Math.floor(t / segment), currentPalette.length - 2); // Find the start color index
+                 const localT = (t % segment) / segment; // Find position within this segment
+                 return new THREE.Color().lerpColors(currentPalette[index], currentPalette[index + 1], localT);
+             } else {
+                 // Pick a random discrete color
+                 return currentPalette[Math.floor(Math.random() * currentPalette.length)];
+             }
+        }
+
+
+        // --- Background Management ---
+        function updateBackground() {
+            const type = backgroundTypeSelect.value;
+            const solidColor = backgroundColorSolidInput.value;
+            const gradColor1 = backgroundColorGradient1Input.value;
+            const gradColor2 = backgroundColorGradient2Input.value;
+            const gradDirection = gradientDirectionSelect.value;
+
+            // Hide/show relevant controls
+            solidColorOptionDiv.classList.toggle('hidden', type !== 'solid');
+            gradientColorOptionsDiv.classList.toggle('hidden', type !== 'gradient');
+
+            // Reset styles first
+            canvasContainer.style.background = '';
+            if(renderer) renderer.setClearAlpha(1.0); // Default to opaque
+            if(scene) scene.background = null; // Clear scene background initially
+
+            switch (type) {
+                case 'solid':
+                    if (scene) scene.background = new THREE.Color(solidColor);
+                    canvasContainer.style.backgroundColor = solidColor; // Also set container for consistency
+                    break;
+                case 'gradient':
+                    if(renderer) renderer.setClearAlpha(0.0); // Make renderer transparent
+                    // Apply gradient to the container *behind* the canvas
+                    canvasContainer.style.background = `linear-gradient(${gradDirection}, ${gradColor1}, ${gradColor2})`;
+                    break;
+                case 'default':
+                default:
+                    if (scene) scene.background = new THREE.Color(defaultBgColor);
+                     canvasContainer.style.backgroundColor = `#${defaultBgColor.toString(16).padStart(6, '0')}`;
+                    break;
+            }
+        }
+
+
+        // --- Animation Loop ---
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            applyMovementPattern(time, delta);
+
+            // Update colors continuously if using HSL shifts in patterns
+            shapes.forEach((shape, index) => {
+                 // Example: Re-apply color logic if it depends on time, like in vortex/grid HSL shifts
+                 if (currentMovement === 'vortex' || currentMovement === 'grid' || currentMovement === 'wave') {
+                     // This logic is now partially duplicated from applyMovementPattern, consider refactoring
+                     let hue;
+                     if (currentMovement === 'vortex') hue = (time * 0.1 + index * 0.01) % 1;
+                     if (currentMovement === 'grid') hue = (Math.sin((time + index * 0.1) * 0.3 * 2) + 1) / 2;
+                      if (currentMovement === 'wave') {
+                          const waveSpeed = 0.8; const waveAmplitude = 15;
+                          hue = (shape.position.y / waveAmplitude * 0.5 + 0.5 + time * 0.05) % 1;
+                      }
+                      // Only apply HSL if not using custom gradient palette
+                      if (!usePaletteGradient && hue !== undefined) {
+                           shape.material.color.setHSL(hue, 1, 0.6);
+                      } else if (!usePaletteGradient && currentMovement !== 'vortex' && currentMovement !== 'grid' && currentMovement !== 'wave') {
+                          // If not using gradient and pattern doesn't set color, ensure it has *a* color
+                          // This might cause rapid flashing if called every frame. Better to set color on creation/palette change.
+                          // shape.material.color.copy(getRandomPaletteColor(index / shapes.length)); // Reconsider this line
+                      } else if (usePaletteGradient) {
+                           // Re-calculate gradient color based on some factor if needed (e.g., time)
+                           // Example: Pulsate gradient position
+                           const gradientT = (Math.sin(time * 0.5 + index * 0.1) + 1) / 2; // 0 to 1 based on time/index
+                           shape.material.color.copy(getRandomPaletteColor(gradientT));
+                      }
+                 } else if (usePaletteGradient) {
+                     // Apply gradient color even if pattern doesn't change it, maybe based on time?
+                     const gradientT = (Math.sin(time * 0.5 + index * 0.1) + 1) / 2;
+                     shape.material.color.copy(getRandomPaletteColor(gradientT));
+                 }
+            });
+
+
+            renderer.render(scene, camera);
+        }
+
+        function startAnimation() {
+            if (animationId) cancelAnimationFrame(animationId);
+            animate();
+        }
+
+        // --- Movement Patterns (Simplified Color Logic Here) ---
+        // Color logic is now primarily handled in animate() loop for continuous effects
+        // or in updatePalette()/getRandomPaletteColor() for static/gradient palettes.
+        function applyMovementPattern(time, delta) {
+            const speed = 0.5;
+            const scaleSpeed = 0.3;
+            const rotationSpeed = 0.4;
+
+            shapes.forEach((shape, index) => {
+                const offsetTime = time + index * 0.1;
+
+                switch (currentMovement) {
+                    case 'vortex':
+                        shape.position.x = Math.sin(offsetTime * speed) * (20 + index * 0.1);
+                        shape.position.y = Math.cos(offsetTime * speed) * (20 + index * 0.1);
+                        shape.position.z = Math.sin(offsetTime * speed * 0.5) * 30 - 30;
+                        shape.rotation.x += delta * rotationSpeed;
+                        shape.rotation.y += delta * rotationSpeed * 1.2;
+                        // Color handled in animate()
+                        break;
+                    case 'grid':
+                        const gridSize = Math.ceil(Math.sqrt(currentShapeCount));
+                        const spacing = 10;
+                        const gridX = (index % gridSize - gridSize / 2 + 0.5) * spacing;
+                        const gridY = (Math.floor(index / gridSize) - gridSize / 2 + 0.5) * spacing;
+                        shape.position.set(gridX, gridY, Math.sin(offsetTime * 0.5) * 15);
+                        const scale = 1 + Math.sin(offsetTime * scaleSpeed * 2) * 0.5;
+                        shape.scale.set(scale, scale, scale);
+                        shape.rotation.z += delta * rotationSpeed * 0.5;
+                        // Color handled in animate()
+                        break;
+                    case 'chaos':
+                        shape.position.x += (Math.random() - 0.5) * delta * 20;
+                        shape.position.y += (Math.random() - 0.5) * delta * 20;
+                        shape.position.z += (Math.random() - 0.5) * delta * 20;
+                        shape.position.clampScalar(-60, 60);
+                        shape.rotation.x += delta * rotationSpeed * (Math.random() - 0.5) * 2;
+                        shape.rotation.y += delta * rotationSpeed * (Math.random() - 0.5) * 2;
+                        shape.scale.setScalar(1 + Math.sin(offsetTime * scaleSpeed) * 0.3);
+                         // Occasional discrete color change if not using gradient
+                         if (!usePaletteGradient && Math.random() < 0.01) {
+                             shape.material.color.copy(getRandomPaletteColor()); // Use random discrete color
+                         }
+                        break;
+                    case 'tunnel':
+                        shape.position.z += delta * 30 * (1 + index * 0.01);
+                        shape.rotation.z += delta * rotationSpeed * 2;
+                        shape.rotation.x += delta * rotationSpeed * 0.5;
+                        const radius = 15 + Math.sin(offsetTime * 0.2) * 5;
+                        const angle = offsetTime * 0.3 + index * Math.PI * 0.1;
+                        shape.position.x = Math.cos(angle) * radius;
+                        shape.position.y = Math.sin(angle) * radius;
+                        if (shape.position.z > camera.position.z) {
+                            shape.position.z = -150 - Math.random() * 50;
+                            // Change color on reset if not using time-based gradient
+                             if (!usePaletteGradient) {
+                                 shape.material.color.copy(getRandomPaletteColor(index / shapes.length));
+                             }
+                        }
+                        break;
+                     case 'wave':
+                        const waveSpeed = 0.8; const waveAmplitude = 15; const waveFrequency = 0.1;
+                        shape.position.x = (index % 15 - 7.5) * 5;
+                        shape.position.y = Math.sin(shape.position.x * waveFrequency + time * waveSpeed) * waveAmplitude;
+                        shape.position.z = Math.cos(time * waveSpeed * 0.7 + index * 0.1) * 20 - 10;
+                        shape.rotation.y += delta * rotationSpeed;
+                        shape.scale.setScalar(1 + Math.cos(time * waveSpeed + index * 0.2) * 0.4);
+                        // Color handled in animate()
+                        break;
+                }
+            });
+        }
+
+
+        // --- Event Handlers ---
+        function onWindowResize() {
+            if (!renderer || !camera || !canvasContainer) return;
+            const width = canvasContainer.clientWidth;
+            const height = canvasContainer.clientHeight;
+            if (width === 0 || height === 0) return;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        colorPaletteSelect.addEventListener('change', updatePalette);
+        usePaletteGradientCheckbox.addEventListener('change', updatePalette);
+        customColorInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                if (colorPaletteSelect.value === 'custom') updatePalette();
+            });
+        });
+
+        movementPatternSelect.addEventListener('change', (e) => {
+            currentMovement = e.target.value;
+            // Maybe reset colors here if switching away from a pattern that uses HSL
+            updatePalette(); // Re-apply palette colors based on new state
+        });
+
+        shapeTypeSelect.addEventListener('change', (e) => {
+            currentShapeType = e.target.value;
+            createShapes();
+        });
+
+        shapeCountSlider.addEventListener('input', (e) => {
+            currentShapeCount = parseInt(e.target.value, 10);
+            shapeCountLabel.textContent = `${currentShapeCount} shapes`;
+        });
+        shapeCountSlider.addEventListener('change', createShapes); // Recreate shapes on release
+
+        // Background control listeners
+        backgroundTypeSelect.addEventListener('change', updateBackground);
+        backgroundColorSolidInput.addEventListener('input', updateBackground);
+        backgroundColorGradient1Input.addEventListener('input', updateBackground);
+        backgroundColorGradient2Input.addEventListener('input', updateBackground);
+        gradientDirectionSelect.addEventListener('change', updateBackground);
+
+
+        // --- Recording Logic (Mostly Unchanged) ---
+        startRecordBtn.addEventListener('click', startRecording);
+        stopRecordBtn.addEventListener('click', stopRecording);
+
+        function startRecording() {
+            if (!window.MediaRecorder) {
+                 showMessage('Error: MediaRecorder API not supported.', true); return;
+            }
+            // Ensure canvas exists and has dimensions
+             const canvas = renderer.domElement;
+             if (!canvas || canvas.width === 0 || canvas.height === 0) {
+                 showMessage('Error: Canvas not ready for recording.', true); return;
+             }
+
+            const stream = canvas.captureStream(30);
+            const options = { mimeType: 'video/webm; codecs=vp9' };
+             try {
+                 mediaRecorder = new MediaRecorder(stream, options);
+             } catch (e1) {
+                 console.warn(`VP9 failed: ${e1}. Trying VP8...`);
+                 try {
+                    options.mimeType = 'video/webm; codecs=vp8';
+                    mediaRecorder = new MediaRecorder(stream, options);
+                 } catch (e2) {
+                     console.warn(`VP8 failed: ${e2}. Trying default...`);
+                     try {
+                         options.mimeType = 'video/webm';
+                         mediaRecorder = new MediaRecorder(stream, options);
+                     } catch (e3) {
+                         showMessage('Error: No suitable video format supported.', true); console.error(e3); return;
+                     }
+                 }
+             }
+
+            recordedChunks = [];
+            mediaRecorder.ondataavailable = (event) => { if (event.data.size > 0) recordedChunks.push(event.data); };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: options.mimeType });
+                const url = URL.createObjectURL(blob);
+                downloadLink.href = url;
+                const now = new Date();
+                const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+                downloadLink.download = `psychedelic_animation_${currentMovement}_${currentShapeType}_${timestamp}.webm`;
+                downloadLink.classList.remove('hidden');
+                downloadLink.classList.add('inline-flex');
+                startRecordBtn.disabled = false; stopRecordBtn.disabled = true;
+                startRecordBtn.classList.remove('btn-disabled'); stopRecordBtn.classList.add('btn-disabled');
+                recordingIndicator.style.display = 'none';
+                showMessage('Recording stopped. Click Download Video.');
+            };
+             mediaRecorder.onerror = (event) => {
+                 showMessage(`Recording error: ${event.error.message}`, true); console.error(event.error); stopRecording();
+             };
+            mediaRecorder.start();
+            startRecordBtn.disabled = true; stopRecordBtn.disabled = false;
+            startRecordBtn.classList.add('btn-disabled'); stopRecordBtn.classList.remove('btn-disabled');
+            downloadLink.classList.add('hidden');
+            recordingIndicator.style.display = 'block';
+            showMessage('Recording started...');
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+            startRecordBtn.disabled = false; stopRecordBtn.disabled = true;
+            startRecordBtn.classList.remove('btn-disabled'); stopRecordBtn.classList.add('btn-disabled');
+            recordingIndicator.style.display = 'none';
+        }
+
+         // --- Utility Functions ---
+         function showMessage(message, isError = false) {
+             messageBox.textContent = message;
+             messageBox.style.backgroundColor = isError ? 'rgba(220, 38, 38, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+             messageBox.style.display = 'block';
+             setTimeout(() => { messageBox.style.display = 'none'; }, 4000);
+         }
+
+
+        // --- Run ---
+         window.onload = () => {
+             if (typeof THREE === 'undefined') {
+                 showMessage("Error: three.js failed to load.", true); console.error("three.js not loaded"); return;
+             }
+             try {
+                init();
+             } catch (error) {
+                 showMessage(`Initialization Error: ${error.message}`, true); console.error("Initialization failed:", error);
+                 // Disable controls if init fails
+                 [colorPaletteSelect, movementPatternSelect, shapeTypeSelect, shapeCountSlider, backgroundTypeSelect, startRecordBtn].forEach(el => el.disabled = true);
+             }
+         };
+
+    </script>
+</body>
+</html>
