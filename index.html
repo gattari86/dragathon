@@ -1,458 +1,636 @@
-    <script>
-        // --- DOM Elements ---
-        const canvas = document.getElementById('artCanvas');
-        const ctx = canvas.getContext('2d');
-        // Buttons
-        const playBtn = document.getElementById('playBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const regenerateBtn = document.getElementById('regenerateBtn');
-        const downloadPngBtn = document.getElementById('downloadPngBtn');
-        const downloadWebmBtn = document.getElementById('downloadWebmBtn');
-        const startRecordBtn = document.getElementById('startRecordBtn');
-        const stopRecordBtn = document.getElementById('stopRecordBtn');
-        // Sliders & Value Displays
-        const intensitySlider = document.getElementById('intensity');
-        const intensityValue = document.getElementById('intensityValue');
-        const blurSlider = document.getElementById('blur');
-        const blurValue = document.getElementById('blurValue');
-        const minRadiusSlider = document.getElementById('minRadius');
-        const minRadiusValue = document.getElementById('minRadiusValue');
-        const maxRadiusSlider = document.getElementById('maxRadius');
-        const maxRadiusValue = document.getElementById('maxRadiusValue');
-        const opacitySlider = document.getElementById('opacity');
-        const opacityValue = document.getElementById('opacityValue');
-        const speedSlider = document.getElementById('speed');
-        const speedValue = document.getElementById('speedValue');
-        // Circle Color Inputs
-        const circleColorInputs = Array.from(document.querySelectorAll('.circle-color'));
-        // Background Controls
-        const backgroundTypeRadios = Array.from(document.querySelectorAll('input[name="backgroundType"]'));
-        const solidColorOptionDiv = document.getElementById('solidColorOption');
-        const gradientOptionsDiv = document.getElementById('gradientOptions');
-        const bgColor1Input = document.getElementById('bgColor1'); // Input for SOLID color
-        const bgColorGradient1Input = document.getElementById('bgColorGradient1'); // Input for GRADIENT color 1
-        const bgColorGradient2Input = document.getElementById('bgColorGradient2'); // Input for GRADIENT color 2
-        // Status/Indicators
-        const statusMessage = document.getElementById('statusMessage');
-        const recordingIndicator = document.getElementById('recordingIndicator');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blur Art Animation</title>
+  <style>
+    /* Professional, mobile-friendly styling */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 10px;
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      border: 1px solid #ccc;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    button, input[type="range"], input[type="color"] {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      background: #eee;
+    }
+    .hidden {
+      display: none;
+    }
+    .status {
+      text-align: center;
+      margin: 5px 0;
+    }
+    @media (max-width: 600px) {
+      .controls {
+        flex-direction: column;
+      }
+    }
+  </style>
+  <!-- Load ffmpeg.js from CDN for MP4 conversion -->
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <canvas id="artCanvas"></canvas>
+    <div class="controls">
+      <button id="playBtn">Play</button>
+      <button id="pauseBtn" disabled>Pause</button>
+      <button id="regenerateBtn">Regenerate</button>
+      <button id="downloadPngBtn">Download PNG</button>
+      <button id="downloadWebmBtn" disabled>Download WEBM</button>
+      <button id="downloadMp4Btn" disabled>Download MP4</button>
+      <button id="startRecordBtn">Start Recording</button>
+      <button id="stopRecordBtn" disabled>Stop Recording</button>
+    </div>
+    <div class="controls">
+      <label>Intensity:
+        <input type="range" id="intensity" min="10" max="100" value="50">
+        <span id="intensityValue">50</span>
+      </label>
+      <label>Blur:
+        <input type="range" id="blur" min="0" max="30" value="15">
+        <span id="blurValue">15</span>
+      </label>
+      <label>Min Radius:
+        <input type="range" id="minRadius" min="1" max="50" value="5">
+        <span id="minRadiusValue">5</span>%
+      </label>
+      <label>Max Radius:
+        <input type="range" id="maxRadius" min="1" max="100" value="25">
+        <span id="maxRadiusValue">25</span>%
+      </label>
+      <label>Opacity:
+        <input type="range" id="opacity" min="0.1" max="1" step="0.01" value="0.7">
+        <span id="opacityValue">0.70</span>
+      </label>
+      <label>Speed:
+        <input type="range" id="speed" min="0.1" max="5" step="0.1" value="1.0">
+        <span id="speedValue">1.0</span>
+      </label>
+    </div>
+    <div class="controls">
+      <div>
+        <label>Circle Color 1:
+          <input type="color" class="circle-color" value="#ff0000">
+        </label>
+        <label>Circle Color 2:
+          <input type="color" class="circle-color" value="#00ff00">
+        </label>
+        <label>Circle Color 3:
+          <input type="color" class="circle-color" value="#0000ff">
+        </label>
+      </div>
+    </div>
+    <div class="controls">
+      <label><input type="radio" name="backgroundType" value="solid" checked> Solid Background</label>
+      <label><input type="radio" name="backgroundType" value="linear"> Linear Gradient</label>
+      <label><input type="radio" name="backgroundType" value="radial"> Radial Gradient</label>
+    </div>
+    <div id="solidColorOption" class="controls">
+      <label>Background Color:
+        <input type="color" id="bgColor1" value="#ffffff">
+      </label>
+    </div>
+    <div id="gradientOptions" class="controls hidden">
+      <label>Gradient Color 1:
+        <input type="color" id="bgColorGradient1" value="#ffffff">
+      </label>
+      <label>Gradient Color 2:
+        <input type="color" id="bgColorGradient2" value="#cccccc">
+      </label>
+    </div>
+    <div id="statusMessage" class="status"></div>
+    <div id="recordingIndicator" class="status hidden">Recording...</div>
+  </div>
 
-        // --- State Variables ---
-        let baseCircleColors = [];
-        let intensity = 50;
-        let blurAmount = 15;
-        let minRadiusPercent = 5;
-        let maxRadiusPercent = 25;
-        let maxOpacity = 0.7;
-        let speedMultiplier = 1.0;
-        let circles = [];
-        let animationFrameId = null;
-        let isPaused = false;
-        let canvasWidth = 0;
-        let canvasHeight = 0;
-        let statusTimeout = null;
-        // Background state
-        let backgroundType = 'solid'; // 'solid', 'linear', 'radial'
-        let backgroundColor1 = '#FFFFFF'; // Holds the first color (either solid OR gradient start)
-        let backgroundColor2 = '#CCCCCC'; // Holds the second color (gradient end)
+  <script>
+    // --- DOM Elements ---
+    const canvas = document.getElementById('artCanvas');
+    const ctx = canvas.getContext('2d');
+    // Buttons
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const regenerateBtn = document.getElementById('regenerateBtn');
+    const downloadPngBtn = document.getElementById('downloadPngBtn');
+    const downloadWebmBtn = document.getElementById('downloadWebmBtn');
+    const downloadMp4Btn = document.getElementById('downloadMp4Btn');
+    const startRecordBtn = document.getElementById('startRecordBtn');
+    const stopRecordBtn = document.getElementById('stopRecordBtn');
+    // Sliders & Value Displays
+    const intensitySlider = document.getElementById('intensity');
+    const intensityValue = document.getElementById('intensityValue');
+    const blurSlider = document.getElementById('blur');
+    const blurValue = document.getElementById('blurValue');
+    const minRadiusSlider = document.getElementById('minRadius');
+    const minRadiusValue = document.getElementById('minRadiusValue');
+    const maxRadiusSlider = document.getElementById('maxRadius');
+    const maxRadiusValue = document.getElementById('maxRadiusValue');
+    const opacitySlider = document.getElementById('opacity');
+    const opacityValue = document.getElementById('opacityValue');
+    const speedSlider = document.getElementById('speed');
+    const speedValue = document.getElementById('speedValue');
+    // Circle Color Inputs
+    const circleColorInputs = Array.from(document.querySelectorAll('.circle-color'));
+    // Background Controls
+    const backgroundTypeRadios = Array.from(document.querySelectorAll('input[name="backgroundType"]'));
+    const solidColorOptionDiv = document.getElementById('solidColorOption');
+    const gradientOptionsDiv = document.getElementById('gradientOptions');
+    const bgColor1Input = document.getElementById('bgColor1'); // Solid background color
+    const bgColorGradient1Input = document.getElementById('bgColorGradient1'); // Gradient color 1
+    const bgColorGradient2Input = document.getElementById('bgColorGradient2'); // Gradient color 2
+    // Status/Indicators
+    const statusMessage = document.getElementById('statusMessage');
+    const recordingIndicator = document.getElementById('recordingIndicator');
 
-        // --- Media Recorder State ---
-        let mediaRecorder = null;
-        let recordedChunks = [];
-        let isRecording = false;
-        const MimeType = 'video/webm;codecs=vp9';
+    // --- State Variables ---
+    let baseCircleColors = [];
+    let intensity = 50;
+    let blurAmount = 15;
+    let minRadiusPercent = 5;
+    let maxRadiusPercent = 25;
+    let maxOpacity = 0.7;
+    let speedMultiplier = 1.0;
+    let circles = [];
+    let animationFrameId = null;
+    let isPaused = false;
+    let canvasWidth = 0;
+    let canvasHeight = 0;
+    let statusTimeout = null;
+    // Background state
+    let backgroundType = 'solid'; // 'solid', 'linear', 'radial'
+    let backgroundColor1 = '#FFFFFF'; // For solid or gradient start
+    let backgroundColor2 = '#CCCCCC'; // For gradient end
 
-        // --- Helper Functions ---
-        function getRandomFloat(min, max) { return Math.random() * (max - min) + min; }
-        function getRandomCircleColor() { return baseCircleColors.length > 0 ? baseCircleColors[Math.floor(Math.random() * baseCircleColors.length)] : '#000000'; }
-        function hexToRgba(hex, alpha) {
-            let r=0, g=0, b=0;
-            // Allow shorthand hex (#RGB)
-            if(hex.length == 4){ r = parseInt(hex[1]+hex[1], 16); g = parseInt(hex[2]+hex[2], 16); b = parseInt(hex[3]+hex[3], 16); }
-            // Standard hex (#RRGGBB)
-            else if(hex.length == 7){ r = parseInt(hex[1]+hex[2], 16); g = parseInt(hex[3]+hex[4], 16); b = parseInt(hex[5]+hex[6], 16); }
-            return `rgba(${r},${g},${b},${alpha})`;
-        }
-        function showStatus(message, duration = 3000) {
-             clearTimeout(statusTimeout);
-             statusMessage.textContent = message;
-             if (duration > 0) {
-                 statusTimeout = setTimeout(() => statusMessage.textContent = '', duration);
-             }
-        }
+    // --- Media Recorder State ---
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
+    let lastRecordingBlob = null;
+    const MimeType = 'video/webm;codecs=vp9';
 
-        // --- Update State from UI ---
-        function updateStateFromUI() {
-            // Circle properties
-            baseCircleColors = circleColorInputs.map(input => input.value);
-            intensity = parseInt(intensitySlider.value, 10);
-            blurAmount = parseInt(blurSlider.value, 10); // Read blur value
-            minRadiusPercent = parseInt(minRadiusSlider.value, 10);
-            maxRadiusPercent = parseInt(maxRadiusSlider.value, 10);
-            maxOpacity = parseFloat(opacitySlider.value);
-            speedMultiplier = parseFloat(speedSlider.value);
+    // --- Helper Functions ---
+    function getRandomFloat(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+    function getRandomCircleColor() {
+      return baseCircleColors.length > 0 ? baseCircleColors[Math.floor(Math.random() * baseCircleColors.length)] : '#000000';
+    }
+    function hexToRgba(hex, alpha) {
+      let r = 0, g = 0, b = 0;
+      if (hex.length == 4) {
+        r = parseInt(hex[1] + hex[1], 16);
+        g = parseInt(hex[2] + hex[2], 16);
+        b = parseInt(hex[3] + hex[3], 16);
+      } else if (hex.length == 7) {
+        r = parseInt(hex[1] + hex[2], 16);
+        g = parseInt(hex[3] + hex[4], 16);
+        b = parseInt(hex[5] + hex[6], 16);
+      }
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+    function showStatus(message, duration = 3000) {
+      clearTimeout(statusTimeout);
+      statusMessage.textContent = message;
+      if (duration > 0) {
+        statusTimeout = setTimeout(() => statusMessage.textContent = '', duration);
+      }
+    }
 
-            // Background properties
-            const selectedRadio = backgroundTypeRadios.find(radio => radio.checked);
-            backgroundType = selectedRadio ? selectedRadio.value : 'solid';
+    // --- Update State from UI ---
+    function updateStateFromUI() {
+      baseCircleColors = circleColorInputs.map(input => input.value);
+      intensity = parseInt(intensitySlider.value, 10);
+      blurAmount = parseInt(blurSlider.value, 10);
+      minRadiusPercent = parseInt(minRadiusSlider.value, 10);
+      maxRadiusPercent = parseInt(maxRadiusSlider.value, 10);
+      maxOpacity = parseFloat(opacitySlider.value);
+      speedMultiplier = parseFloat(speedSlider.value);
 
-            // *** FIX START: Read correct background colors based on type ***
-            if (backgroundType === 'solid') {
-                backgroundColor1 = bgColor1Input.value;
-                // backgroundColor2 is not used for solid
-            } else {
-                // For gradients, read from the gradient color inputs
-                backgroundColor1 = bgColorGradient1Input.value; // Use the FIRST gradient input
-                backgroundColor2 = bgColorGradient2Input.value; // Use the SECOND gradient input
-            }
-             // *** FIX END ***
+      const selectedRadio = backgroundTypeRadios.find(radio => radio.checked);
+      backgroundType = selectedRadio ? selectedRadio.value : 'solid';
 
-            // Update display values
-            intensityValue.textContent = intensity;
-            blurValue.textContent = blurAmount;
-            minRadiusValue.textContent = minRadiusPercent;
-            maxRadiusValue.textContent = maxRadiusPercent;
-            opacityValue.textContent = maxOpacity.toFixed(2);
-            speedValue.textContent = speedMultiplier.toFixed(1);
+      if (backgroundType === 'solid') {
+        backgroundColor1 = bgColor1Input.value;
+      } else {
+        backgroundColor1 = bgColorGradient1Input.value;
+        backgroundColor2 = bgColorGradient2Input.value;
+      }
 
-             // Ensure min radius slider doesn't exceed max radius slider visually
-             if (minRadiusPercent > maxRadiusPercent) {
-                 minRadiusSlider.value = maxRadiusPercent;
-                 minRadiusPercent = maxRadiusPercent;
-                 minRadiusValue.textContent = minRadiusPercent;
-             }
+      intensityValue.textContent = intensity;
+      blurValue.textContent = blurAmount;
+      minRadiusValue.textContent = minRadiusPercent;
+      maxRadiusValue.textContent = maxRadiusPercent;
+      opacityValue.textContent = maxOpacity.toFixed(2);
+      speedValue.textContent = speedMultiplier.toFixed(1);
 
-            // Toggle visibility of background color pickers
-            solidColorOptionDiv.classList.toggle('hidden', backgroundType !== 'solid');
-            gradientOptionsDiv.classList.toggle('hidden', backgroundType === 'solid');
-        }
+      if (minRadiusPercent > maxRadiusPercent) {
+        minRadiusSlider.value = maxRadiusPercent;
+        minRadiusPercent = maxRadiusPercent;
+        minRadiusValue.textContent = minRadiusPercent;
+      }
 
-        // --- Canvas and Circle Initialization ---
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            canvasWidth = container.clientWidth;
-            canvasHeight = container.clientHeight;
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-        }
+      solidColorOptionDiv.classList.toggle('hidden', backgroundType !== 'solid');
+      gradientOptionsDiv.classList.toggle('hidden', backgroundType === 'solid');
+    }
 
-        function initializeCircles() {
-            circles = [];
-            const baseDimension = Math.min(canvasWidth, canvasHeight);
-            const minRadiusPx = (minRadiusPercent / 100) * baseDimension;
-            const maxRadiusPx = (maxRadiusPercent / 100) * baseDimension;
-            const baseSpeed = baseDimension * 0.001;
+    // --- Canvas and Circle Initialization ---
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvasWidth = container.clientWidth;
+      // Set a responsive height (e.g. 60% of container width)
+      canvasHeight = container.clientWidth * 0.6;
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+    }
 
-            const finalMinRadiusPx = Math.min(minRadiusPx, maxRadiusPx);
-            const finalMaxRadiusPx = Math.max(minRadiusPx, maxRadiusPx);
+    function initializeCircles() {
+      circles = [];
+      const baseDimension = Math.min(canvasWidth, canvasHeight);
+      const minRadiusPx = (minRadiusPercent / 100) * baseDimension;
+      const maxRadiusPx = (maxRadiusPercent / 100) * baseDimension;
+      const baseSpeed = baseDimension * 0.001;
+      const finalMinRadiusPx = Math.min(minRadiusPx, maxRadiusPx);
+      const finalMaxRadiusPx = Math.max(minRadiusPx, maxRadiusPx);
 
-            for (let i = 0; i < intensity; i++) {
-                const radius = getRandomFloat(finalMinRadiusPx, finalMaxRadiusPx);
-                const angle = getRandomFloat(0, Math.PI * 2);
-                const currentSpeed = baseSpeed * speedMultiplier;
-
-                circles.push({
-                    x: getRandomFloat(radius, canvasWidth - radius),
-                    y: getRandomFloat(radius, canvasHeight - radius),
-                    radius: radius,
-                    color: getRandomCircleColor(),
-                    vx: Math.cos(angle) * currentSpeed,
-                    vy: Math.sin(angle) * currentSpeed,
-                    opacity: getRandomFloat(0.1, maxOpacity)
-                });
-            }
-             showStatus("");
-        }
-
-        // --- Drawing Functions ---
-        function drawBackground() {
-            ctx.filter = 'none'; // Ensure no filter
-
-            if (backgroundType === 'solid') {
-                ctx.fillStyle = backgroundColor1;
-            } else if (backgroundType === 'linear') {
-                const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-                gradient.addColorStop(0, backgroundColor1); // Uses corrected color 1
-                gradient.addColorStop(1, backgroundColor2);
-                ctx.fillStyle = gradient;
-            } else if (backgroundType === 'radial') {
-                const centerX = canvasWidth / 2;
-                const centerY = canvasHeight / 2;
-                const outerRadius = Math.sqrt(centerX*centerX + centerY*centerY);
-                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, outerRadius);
-                gradient.addColorStop(0, backgroundColor1); // Uses corrected color 1
-                gradient.addColorStop(1, backgroundColor2);
-                ctx.fillStyle = gradient;
-            }
-            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-        }
-
-        function drawCircles() {
-             // console.log("Applying blur:", blurAmount); // <-- Temporary DEBUG line
-             ctx.filter = `blur(${blurAmount}px)`; // Use the state variable directly
-
-             circles.forEach(circle => {
-                 ctx.beginPath();
-                 ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
-                 ctx.fillStyle = hexToRgba(circle.color, circle.opacity);
-                 ctx.fill();
-             });
-
-             ctx.filter = 'none'; // Reset filter
-        }
-
-
-        // --- Animation Loop ---
-        function updateCirclePositions() {
-            // Speed adjustment is now handled primarily in the slider event listener
-            circles.forEach(circle => {
-                circle.x += circle.vx;
-                circle.y += circle.vy;
-
-                // Boundary collision
-                if (circle.x - circle.radius < 0 || circle.x + circle.radius > canvasWidth) {
-                    circle.vx *= -1;
-                    circle.x = Math.max(circle.radius, Math.min(canvasWidth - circle.radius, circle.x));
-                }
-                if (circle.y - circle.radius < 0 || circle.y + circle.radius > canvasHeight) {
-                    circle.vy *= -1;
-                    circle.y = Math.max(circle.radius, Math.min(canvasHeight - circle.radius, circle.y));
-                }
-            });
-        }
-
-        function drawFrame() {
-             drawBackground(); // Draw background first
-             drawCircles();    // Draw blurred circles on top
-        }
-
-        function animate() {
-            if (isPaused) return;
-            updateCirclePositions();
-            drawFrame(); // Will use the latest state variables (incl. blurAmount)
-            animationFrameId = requestAnimationFrame(animate);
-        }
-
-        // --- Control Functions ---
-        function playAnimation() {
-            if (animationFrameId === null || isPaused) {
-                 isPaused = false;
-                 playBtn.disabled = true;
-                 pauseBtn.disabled = false;
-                 startRecordBtn.disabled = isRecording;
-                 downloadWebmBtn.disabled = false;
-                 showStatus("");
-                 animate();
-            }
-        }
-
-        function pauseAnimation() {
-             if (animationFrameId !== null && !isPaused) {
-                 isPaused = true;
-                 cancelAnimationFrame(animationFrameId);
-                 animationFrameId = null;
-                 playBtn.disabled = false;
-                 pauseBtn.disabled = true;
-                 startRecordBtn.disabled = true;
-                 stopRecordBtn.disabled = !isRecording;
-                 downloadWebmBtn.disabled = true;
-                 showStatus("Paused");
-            }
-        }
-
-        function regenerateArt() {
-            const wasPaused = isPaused;
-            pauseAnimation();
-            updateStateFromUI(); // Read latest settings *** BEFORE initializing ***
-            // resizeCanvas(); // Resize only happens on window resize event
-            initializeCircles(); // Create circles based on new state
-            drawFrame(); // Draw initial frame
-
-            // Reset controls
-            playBtn.disabled = false;
-            pauseBtn.disabled = true;
-            startRecordBtn.disabled = true;
-            stopRecordBtn.disabled = true;
-            downloadWebmBtn.disabled = true;
-            isPaused = true;
-
-            if (isRecording) {
-                stopRecording(); // Safety stop if somehow recording
-                showStatus("Recording stopped. New art generated.");
-            } else {
-                showStatus("New art generated. Press Play.");
-            }
-        }
-
-        // --- Media Recorder Functions ---
-        // (No changes needed in Media Recorder functions)
-        function handleDataAvailable(event) { if (event.data && event.data.size > 0) { recordedChunks.push(event.data); } }
-        function handleStopRecording() {
-            isRecording = false;
-            recordingIndicator.classList.add('hidden');
-            showStatus('Processing video...', 0);
-            const blob = new Blob(recordedChunks, { type: MimeType });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `blur-art-animation.webm`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            recordedChunks = [];
-            mediaRecorder = null;
-            startRecordBtn.disabled = isPaused;
-            stopRecordBtn.disabled = true;
-            regenerateBtn.disabled = false;
-            downloadPngBtn.disabled = false;
-            downloadWebmBtn.disabled = isPaused;
-            playBtn.disabled = isPaused;
-            pauseBtn.disabled = !isPaused;
-            showStatus('WEBM Video ready!');
-        }
-        function startRecording() {
-            if (!window.MediaRecorder || !MediaRecorder.isTypeSupported(MimeType)) { showStatus(`Error: Recording (${MimeType}) not supported.`); console.error('MediaRecorder API or MimeType not supported.'); return; }
-            if (isRecording || isPaused) return;
-            isRecording = true;
-            recordedChunks = [];
-            recordingIndicator.classList.remove('hidden');
-            showStatus('Recording...', 0);
-            startRecordBtn.disabled = true;
-            stopRecordBtn.disabled = false;
-            regenerateBtn.disabled = true;
-            downloadPngBtn.disabled = true;
-            downloadWebmBtn.disabled = true;
-            playBtn.disabled = true;
-            pauseBtn.disabled = false;
-            try {
-                 const stream = canvas.captureStream(30);
-                 mediaRecorder = new MediaRecorder(stream, { mimeType: MimeType });
-                 mediaRecorder.ondataavailable = handleDataAvailable;
-                 mediaRecorder.onstop = handleStopRecording;
-                 mediaRecorder.onerror = (event) => {
-                    console.error('MediaRecorder error:', event.error);
-                    showStatus(`Recording Error: ${event.error.name}`);
-                    isRecording = false; recordingIndicator.classList.add('hidden'); startRecordBtn.disabled = isPaused; stopRecordBtn.disabled = true; regenerateBtn.disabled = false; downloadPngBtn.disabled = false; downloadWebmBtn.disabled = isPaused; playBtn.disabled = isPaused; pauseBtn.disabled = !isPaused;
-                 };
-                 mediaRecorder.start();
-            } catch (error) {
-                 console.error("Error starting MediaRecorder:", error);
-                 showStatus(`Error: ${error.message}`);
-                 isRecording = false; recordingIndicator.classList.add('hidden'); startRecordBtn.disabled = isPaused; stopRecordBtn.disabled = true; regenerateBtn.disabled = false; downloadPngBtn.disabled = false; downloadWebmBtn.disabled = isPaused; playBtn.disabled = isPaused; pauseBtn.disabled = !isPaused;
-            }
-        }
-        function stopRecording() { if (mediaRecorder && isRecording) { mediaRecorder.stop(); showStatus('Stopping recording...'); } }
-
-        // --- Event Listeners ---
-        playBtn.addEventListener('click', playAnimation);
-        pauseBtn.addEventListener('click', pauseAnimation);
-        regenerateBtn.addEventListener('click', regenerateArt);
-        startRecordBtn.addEventListener('click', startRecording);
-        stopRecordBtn.addEventListener('click', stopRecording);
-        downloadPngBtn.addEventListener('click', () => {
-            if (isPaused) drawFrame();
-            const link = document.createElement('a');
-            link.download = 'blur-art-frame.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            showStatus("PNG frame downloaded");
+      for (let i = 0; i < intensity; i++) {
+        const radius = getRandomFloat(finalMinRadiusPx, finalMaxRadiusPx);
+        const angle = getRandomFloat(0, Math.PI * 2);
+        const currentSpeed = baseSpeed * speedMultiplier;
+        circles.push({
+          x: getRandomFloat(radius, canvasWidth - radius),
+          y: getRandomFloat(radius, canvasHeight - radius),
+          radius: radius,
+          color: getRandomCircleColor(),
+          vx: Math.cos(angle) * currentSpeed,
+          vy: Math.sin(angle) * currentSpeed,
+          opacity: getRandomFloat(0.1, maxOpacity)
         });
-        downloadWebmBtn.addEventListener('click', () => {
-            if (isRecording) { stopRecording(); }
-            else { showStatus("Start recording first to download WEBM."); }
-        });
+      }
+      showStatus("");
+    }
 
-        // Combined listener for sliders, colors, and background controls
-        const allControls = [
-             intensitySlider, blurSlider, minRadiusSlider, maxRadiusSlider, opacitySlider, speedSlider,
-             ...circleColorInputs, ...backgroundTypeRadios, bgColor1Input, bgColorGradient1Input, bgColorGradient2Input
-        ];
+    // --- Drawing Functions ---
+    function drawBackground() {
+      ctx.filter = 'none';
+      if (backgroundType === 'solid') {
+        ctx.fillStyle = backgroundColor1;
+      } else if (backgroundType === 'linear') {
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+        gradient.addColorStop(0, backgroundColor1);
+        gradient.addColorStop(1, backgroundColor2);
+        ctx.fillStyle = gradient;
+      } else if (backgroundType === 'radial') {
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2;
+        const outerRadius = Math.sqrt(centerX * centerX + centerY * centerY);
+        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, outerRadius);
+        gradient.addColorStop(0, backgroundColor1);
+        gradient.addColorStop(1, backgroundColor2);
+        ctx.fillStyle = gradient;
+      }
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
 
-        allControls.forEach(input => {
-            input.addEventListener('input', (event) => {
-                 const previousSpeed = speedMultiplier;
-                 const previousBgType = backgroundType;
-                 updateStateFromUI(); // Update state variables based on the control that fired the event
+    function drawCircles() {
+      ctx.filter = `blur(${blurAmount}px)`;
+      circles.forEach(circle => {
+        ctx.beginPath();
+        ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+        ctx.fillStyle = hexToRgba(circle.color, circle.opacity);
+        ctx.fill();
+      });
+      ctx.filter = 'none';
+    }
 
-                 const changedInput = event.target;
+    function drawFrame() {
+      drawBackground();
+      drawCircles();
+    }
 
-                 // Define controls that require full regeneration
-                 const requiresRegen = [
-                     intensitySlider, minRadiusSlider, maxRadiusSlider, opacitySlider,
-                     bgColor1Input, // Solid BG Color
-                     bgColorGradient1Input, // Gradient BG Color 1
-                     bgColorGradient2Input, // Gradient BG Color 2
-                     ...circleColorInputs
-                 ].includes(changedInput);
+    // --- Animation Loop ---
+    function updateCirclePositions() {
+      circles.forEach(circle => {
+        circle.x += circle.vx;
+        circle.y += circle.vy;
+        if (circle.x - circle.radius < 0 || circle.x + circle.radius > canvasWidth) {
+          circle.vx *= -1;
+          circle.x = Math.max(circle.radius, Math.min(canvasWidth - circle.radius, circle.x));
+        }
+        if (circle.y - circle.radius < 0 || circle.y + circle.radius > canvasHeight) {
+          circle.vy *= -1;
+          circle.y = Math.max(circle.radius, Math.min(canvasHeight - circle.radius, circle.y));
+        }
+      });
+    }
 
-                 // Check if background *type* changed
-                 const backgroundTypeChanged = backgroundTypeRadios.includes(changedInput) && backgroundType !== previousBgType;
+    function animate() {
+      if (isPaused) return;
+      updateCirclePositions();
+      drawFrame();
+      animationFrameId = requestAnimationFrame(animate);
+    }
 
-                 if (requiresRegen || backgroundTypeChanged) {
-                     // Regenerate immediately for changes affecting setup or background appearance
-                     regenerateArt(); // Handles pause, re-init, redraw, keeps paused
-                     // Status message handled within regenerateArt
-                 } else if (changedInput === speedSlider) {
-                     // Speed slider: Update circle velocities live
-                     const baseDimension = Math.min(canvasWidth, canvasHeight);
-                     const baseSpeed = baseDimension * 0.001;
-                     circles.forEach(circle => {
-                         const currentMagnitude = Math.sqrt(circle.vx * circle.vx + circle.vy * circle.vy);
-                         const targetSpeed = baseSpeed * speedMultiplier;
-                         if (currentMagnitude > 0.0001) {
-                             const scaleFactor = targetSpeed / currentMagnitude;
-                             circle.vx *= scaleFactor;
-                             circle.vy *= scaleFactor;
-                         } else {
-                             const angle = getRandomFloat(0, Math.PI * 2);
-                             circle.vx = Math.cos(angle) * targetSpeed;
-                             circle.vy = Math.sin(angle) * targetSpeed;
-                         }
-                     });
-                     showStatus("");
-                 } else if (changedInput === blurSlider) {
-                     // Blur slider: Applied live in drawFrame. If paused, redraw now.
-                     if (isPaused) {
-                         drawFrame(); // Redraw immediately with the new blur value
-                     }
-                      // No status message needed, change is visual
-                 }
-            });
-        });
+    // --- Control Functions ---
+    function playAnimation() {
+      if (animationFrameId === null || isPaused) {
+        isPaused = false;
+        playBtn.disabled = true;
+        pauseBtn.disabled = false;
+        startRecordBtn.disabled = isRecording;
+        downloadWebmBtn.disabled = false;
+        downloadMp4Btn.disabled = false;
+        showStatus("");
+        animate();
+      }
+    }
 
-        // Debounced resize handler
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                const wasPaused = isPaused;
-                const wasRecording = isRecording;
-                if (wasRecording) { stopRecording(); showStatus("Resized - Recording stopped.", 5000); }
-                else { showStatus("Resizing...", 1000); }
+    function pauseAnimation() {
+      if (animationFrameId !== null && !isPaused) {
+        isPaused = true;
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+        playBtn.disabled = false;
+        pauseBtn.disabled = true;
+        startRecordBtn.disabled = true;
+        stopRecordBtn.disabled = !isRecording;
+        downloadWebmBtn.disabled = true;
+        downloadMp4Btn.disabled = true;
+        showStatus("Paused");
+      }
+    }
 
-                pauseAnimation();
-                updateStateFromUI(); // Get current control values first
-                resizeCanvas();      // THEN resize canvas
-                initializeCircles(); // THEN reinitialize circles for new size/state
-                drawFrame();         // Draw initial frame
+    function regenerateArt() {
+      pauseAnimation();
+      updateStateFromUI();
+      initializeCircles();
+      drawFrame();
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
+      startRecordBtn.disabled = true;
+      stopRecordBtn.disabled = true;
+      downloadWebmBtn.disabled = true;
+      downloadMp4Btn.disabled = true;
+      isPaused = true;
+      if (isRecording) {
+        stopRecording();
+        showStatus("Recording stopped. New art generated.");
+      } else {
+        showStatus("New art generated. Press Play.");
+      }
+    }
 
-                isPaused = true; // Always start paused after resize
-                playBtn.disabled = false; pauseBtn.disabled = true; startRecordBtn.disabled = true; stopRecordBtn.disabled = true; downloadWebmBtn.disabled = true;
-                if (!wasRecording) { showStatus("Resized. Press Play."); }
-            }, 250);
-        });
-
-
-        // --- Initial Setup ---
-        window.onload = () => {
-             updateStateFromUI();
-             resizeCanvas();
-             initializeCircles();
-             drawFrame();
-
-             isPaused = true;
-             playBtn.disabled = false; pauseBtn.disabled = true; startRecordBtn.disabled = true; stopRecordBtn.disabled = true; downloadWebmBtn.disabled = true;
-             showStatus("Ready. Press Play.");
+    // --- Media Recorder Functions ---
+    function handleDataAvailable(event) {
+      if (event.data && event.data.size > 0) {
+        recordedChunks.push(event.data);
+      }
+    }
+    async function handleStopRecording() {
+      isRecording = false;
+      recordingIndicator.classList.add('hidden');
+      // Create blob and store it for download options
+      lastRecordingBlob = new Blob(recordedChunks, { type: MimeType });
+      recordedChunks = [];
+      mediaRecorder = null;
+      startRecordBtn.disabled = isPaused;
+      stopRecordBtn.disabled = true;
+      regenerateBtn.disabled = false;
+      downloadPngBtn.disabled = false;
+      downloadWebmBtn.disabled = isPaused;
+      downloadMp4Btn.disabled = isPaused;
+      playBtn.disabled = isPaused;
+      pauseBtn.disabled = !isPaused;
+      showStatus('Recording complete! Choose a download option.');
+    }
+    function startRecording() {
+      if (!window.MediaRecorder || !MediaRecorder.isTypeSupported(MimeType)) {
+        showStatus(`Error: Recording (${MimeType}) not supported.`);
+        console.error('MediaRecorder API or MimeType not supported.');
+        return;
+      }
+      if (isRecording || isPaused) return;
+      isRecording = true;
+      recordedChunks = [];
+      recordingIndicator.classList.remove('hidden');
+      showStatus('Recording...', 0);
+      startRecordBtn.disabled = true;
+      stopRecordBtn.disabled = false;
+      regenerateBtn.disabled = true;
+      downloadPngBtn.disabled = true;
+      downloadWebmBtn.disabled = true;
+      downloadMp4Btn.disabled = true;
+      playBtn.disabled = true;
+      pauseBtn.disabled = false;
+      try {
+        const stream = canvas.captureStream(30);
+        mediaRecorder = new MediaRecorder(stream, { mimeType: MimeType });
+        mediaRecorder.ondataavailable = handleDataAvailable;
+        mediaRecorder.onstop = handleStopRecording;
+        mediaRecorder.onerror = (event) => {
+          console.error('MediaRecorder error:', event.error);
+          showStatus(`Recording Error: ${event.error.name}`);
+          isRecording = false;
+          recordingIndicator.classList.add('hidden');
+          startRecordBtn.disabled = isPaused;
+          stopRecordBtn.disabled = true;
+          regenerateBtn.disabled = false;
+          downloadPngBtn.disabled = false;
+          downloadWebmBtn.disabled = isPaused;
+          downloadMp4Btn.disabled = isPaused;
+          playBtn.disabled = isPaused;
+          pauseBtn.disabled = !isPaused;
         };
+        mediaRecorder.start();
+      } catch (error) {
+        console.error("Error starting MediaRecorder:", error);
+        showStatus(`Error: ${error.message}`);
+        isRecording = false;
+        recordingIndicator.classList.add('hidden');
+        startRecordBtn.disabled = isPaused;
+        stopRecordBtn.disabled = true;
+        regenerateBtn.disabled = false;
+        downloadPngBtn.disabled = false;
+        downloadWebmBtn.disabled = isPaused;
+        downloadMp4Btn.disabled = isPaused;
+        playBtn.disabled = isPaused;
+        pauseBtn.disabled = !isPaused;
+      }
+    }
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        showStatus('Stopping recording...');
+      }
+    }
 
-    </script>
+    // --- Download Handlers ---
+    downloadPngBtn.addEventListener('click', () => {
+      if (isPaused) drawFrame();
+      const link = document.createElement('a');
+      link.download = 'blur-art-frame.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showStatus("PNG frame downloaded");
+    });
+    downloadWebmBtn.addEventListener('click', () => {
+      if (lastRecordingBlob) {
+        const url = URL.createObjectURL(lastRecordingBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'blur-art-animation.webm';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showStatus("WEBM downloaded");
+      } else {
+        showStatus("No recording available.");
+      }
+    });
+    downloadMp4Btn.addEventListener('click', async () => {
+      if (lastRecordingBlob) {
+        showStatus("Converting to MP4, please wait...", 0);
+        const { createFFmpeg, fetchFile } = FFmpeg;
+        const ffmpeg = createFFmpeg({ log: true });
+        await ffmpeg.load();
+        ffmpeg.FS('writeFile', 'input.webm', await fetchFile(lastRecordingBlob));
+        await ffmpeg.run('-i', 'input.webm', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', 'output.mp4');
+        const data = ffmpeg.FS('readFile', 'output.mp4');
+        const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+        const url = URL.createObjectURL(mp4Blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'blur-art-animation.mp4';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showStatus("MP4 downloaded");
+      } else {
+        showStatus("No recording available.");
+      }
+    });
+
+    // --- Combined Event Listeners for Controls ---
+    const allControls = [
+      intensitySlider, blurSlider, minRadiusSlider, maxRadiusSlider, opacitySlider, speedSlider,
+      ...circleColorInputs, ...backgroundTypeRadios, bgColor1Input, bgColorGradient1Input, bgColorGradient2Input
+    ];
+    allControls.forEach(input => {
+      input.addEventListener('input', (event) => {
+        const previousBgType = backgroundType;
+        updateStateFromUI();
+        const changedInput = event.target;
+        const requiresRegen = [
+          intensitySlider, minRadiusSlider, maxRadiusSlider, opacitySlider,
+          bgColor1Input, bgColorGradient1Input, bgColorGradient2Input, ...circleColorInputs
+        ].includes(changedInput);
+        const backgroundTypeChanged = backgroundTypeRadios.includes(changedInput) && backgroundType !== previousBgType;
+        if (requiresRegen || backgroundTypeChanged) {
+          regenerateArt();
+        } else if (changedInput === speedSlider) {
+          const baseDimension = Math.min(canvasWidth, canvasHeight);
+          const baseSpeed = baseDimension * 0.001;
+          circles.forEach(circle => {
+            const currentMagnitude = Math.sqrt(circle.vx * circle.vx + circle.vy * circle.vy);
+            const targetSpeed = baseSpeed * speedMultiplier;
+            if (currentMagnitude > 0.0001) {
+              const scaleFactor = targetSpeed / currentMagnitude;
+              circle.vx *= scaleFactor;
+              circle.vy *= scaleFactor;
+            } else {
+              const angle = getRandomFloat(0, Math.PI * 2);
+              circle.vx = Math.cos(angle) * targetSpeed;
+              circle.vy = Math.sin(angle) * targetSpeed;
+            }
+          });
+          showStatus("");
+        } else if (changedInput === blurSlider) {
+          if (isPaused) {
+            drawFrame();
+          }
+        }
+      });
+    });
+
+    // --- Resize Handler ---
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const wasRecording = isRecording;
+        if (wasRecording) { stopRecording(); showStatus("Resized - Recording stopped.", 5000); }
+        else { showStatus("Resizing...", 1000); }
+        pauseAnimation();
+        updateStateFromUI();
+        resizeCanvas();
+        initializeCircles();
+        drawFrame();
+        isPaused = true;
+        playBtn.disabled = false;
+        pauseBtn.disabled = true;
+        startRecordBtn.disabled = true;
+        stopRecordBtn.disabled = true;
+        downloadWebmBtn.disabled = true;
+        downloadMp4Btn.disabled = true;
+        if (!wasRecording) { showStatus("Resized. Press Play."); }
+      }, 250);
+    });
+
+    // --- Initial Setup ---
+    window.onload = () => {
+      updateStateFromUI();
+      resizeCanvas();
+      initializeCircles();
+      drawFrame();
+      isPaused = true;
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
+      startRecordBtn.disabled = true;
+      stopRecordBtn.disabled = true;
+      downloadWebmBtn.disabled = true;
+      downloadMp4Btn.disabled = true;
+      showStatus("Ready. Press Play.");
+    };
+
+    // --- Event Listeners for Play/Pause/Regenerate/Record ---
+    playBtn.addEventListener('click', playAnimation);
+    pauseBtn.addEventListener('click', pauseAnimation);
+    regenerateBtn.addEventListener('click', regenerateArt);
+    startRecordBtn.addEventListener('click', startRecording);
+    stopRecordBtn.addEventListener('click', stopRecording);
+  </script>
+</body>
+</html>
