@@ -167,9 +167,9 @@
     const backgroundTypeRadios = Array.from(document.querySelectorAll('input[name="backgroundType"]'));
     const solidColorOptionDiv = document.getElementById('solidColorOption');
     const gradientOptionsDiv = document.getElementById('gradientOptions');
-    const bgColor1Input = document.getElementById('bgColor1'); // Solid background color
-    const bgColorGradient1Input = document.getElementById('bgColorGradient1'); // Gradient color 1
-    const bgColorGradient2Input = document.getElementById('bgColorGradient2'); // Gradient color 2
+    const bgColor1Input = document.getElementById('bgColor1');
+    const bgColorGradient1Input = document.getElementById('bgColorGradient1');
+    const bgColorGradient2Input = document.getElementById('bgColorGradient2');
     // Status/Indicators
     const statusMessage = document.getElementById('statusMessage');
     const recordingIndicator = document.getElementById('recordingIndicator');
@@ -189,9 +189,9 @@
     let canvasHeight = 0;
     let statusTimeout = null;
     // Background state
-    let backgroundType = 'solid'; // 'solid', 'linear', 'radial'
-    let backgroundColor1 = '#FFFFFF'; // For solid or gradient start
-    let backgroundColor2 = '#CCCCCC'; // For gradient end
+    let backgroundType = 'solid';
+    let backgroundColor1 = '#FFFFFF';
+    let backgroundColor2 = '#CCCCCC';
 
     // --- Media Recorder State ---
     let mediaRecorder = null;
@@ -205,7 +205,9 @@
       return Math.random() * (max - min) + min;
     }
     function getRandomCircleColor() {
-      return baseCircleColors.length > 0 ? baseCircleColors[Math.floor(Math.random() * baseCircleColors.length)] : '#000000';
+      return baseCircleColors.length > 0
+        ? baseCircleColors[Math.floor(Math.random() * baseCircleColors.length)]
+        : '#000000';
     }
     function hexToRgba(hex, alpha) {
       let r = 0, g = 0, b = 0;
@@ -269,7 +271,6 @@
     function resizeCanvas() {
       const container = canvas.parentElement;
       canvasWidth = container.clientWidth;
-      // Set a responsive height (e.g. 60% of container width)
       canvasHeight = container.clientWidth * 0.6;
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
@@ -323,16 +324,31 @@
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
-    // Updated drawCircles() using ctx.save()/restore() to properly apply the blur filter
+    // Updated drawCircles() that checks for native filter support.
     function drawCircles() {
       ctx.save();
-      ctx.filter = `blur(${blurAmount}px)`;
-      circles.forEach(circle => {
-        ctx.beginPath();
-        ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
-        ctx.fillStyle = hexToRgba(circle.color, circle.opacity);
-        ctx.fill();
-      });
+      if ('filter' in ctx) {
+        // Modern browsers: use filter property
+        ctx.filter = `blur(${blurAmount}px)`;
+        circles.forEach(circle => {
+          ctx.beginPath();
+          ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+          ctx.fillStyle = hexToRgba(circle.color, circle.opacity);
+          ctx.fill();
+        });
+      } else {
+        // Fallback: use shadowBlur (note: this is not a perfect replacement)
+        circles.forEach(circle => {
+          ctx.save();
+          ctx.shadowBlur = blurAmount;
+          ctx.shadowColor = hexToRgba(circle.color, circle.opacity);
+          ctx.beginPath();
+          ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+          ctx.fillStyle = hexToRgba(circle.color, circle.opacity);
+          ctx.fill();
+          ctx.restore();
+        });
+      }
       ctx.restore();
     }
 
