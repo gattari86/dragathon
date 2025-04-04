@@ -58,7 +58,7 @@
       }
     }
   </style>
-  <!-- ffmpeg.js for optional MP4 conversion -->
+  <!-- ffmpeg.js for optional MP4 conversion (works in modern browsers only) -->
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 </head>
 <body>
@@ -78,20 +78,20 @@
     <!-- Sliders for circle count, blur, size, etc. -->
     <div class="controls">
       <label>Intensity:
-        <input type="range" id="intensity" min="10" max="150" value="60">
-        <span id="intensityValue">60</span>
+        <input type="range" id="intensity" min="10" max="300" value="80">
+        <span id="intensityValue">80</span>
       </label>
       <label>Blur:
-        <input type="range" id="blur" min="0" max="60" value="30">
-        <span id="blurValue">30</span>
+        <input type="range" id="blur" min="0" max="100" value="60">
+        <span id="blurValue">60</span>
       </label>
       <label>Min Radius:
-        <input type="range" id="minRadius" min="1" max="50" value="5">
-        <span id="minRadiusValue">5</span>%
+        <input type="range" id="minRadius" min="1" max="60" value="10">
+        <span id="minRadiusValue">10</span>%
       </label>
       <label>Max Radius:
-        <input type="range" id="maxRadius" min="1" max="80" value="40">
-        <span id="maxRadiusValue">40</span>%
+        <input type="range" id="maxRadius" min="1" max="80" value="60">
+        <span id="maxRadiusValue">60</span>%
       </label>
       <label>Opacity:
         <input type="range" id="opacity" min="0.1" max="1" step="0.01" value="0.9">
@@ -110,31 +110,31 @@
           <input type="color" class="circle-color" value="#ff5599">
         </label>
         <label>Circle Color 2:
-          <input type="color" class="circle-color" value="#55ffcc">
+          <input type="color" class="circle-color" value="#ff55ff">
         </label>
         <label>Circle Color 3:
-          <input type="color" class="circle-color" value="#ffdd55">
+          <input type="color" class="circle-color" value="#ffaa33">
         </label>
       </div>
     </div>
 
     <!-- Background type + color pickers -->
     <div class="controls">
-      <label><input type="radio" name="backgroundType" value="solid" checked> Solid Background</label>
+      <label><input type="radio" name="backgroundType" value="solid"> Solid Background</label>
       <label><input type="radio" name="backgroundType" value="linear"> Linear Gradient</label>
-      <label><input type="radio" name="backgroundType" value="radial"> Radial Gradient</label>
+      <label><input type="radio" name="backgroundType" value="radial" checked> Radial Gradient</label>
     </div>
-    <div id="solidColorOption" class="controls">
+    <div id="solidColorOption" class="controls hidden">
       <label>Background Color:
-        <input type="color" id="bgColor1" value="#ffffff">
+        <input type="color" id="bgColor1" value="#222222">
       </label>
     </div>
-    <div id="gradientOptions" class="controls hidden">
+    <div id="gradientOptions" class="controls">
       <label>Gradient Color 1:
-        <input type="color" id="bgColorGradient1" value="#ffffff">
+        <input type="color" id="bgColorGradient1" value="#ff77aa">
       </label>
       <label>Gradient Color 2:
-        <input type="color" id="bgColorGradient2" value="#cccccc">
+        <input type="color" id="bgColorGradient2" value="#ffcc66">
       </label>
     </div>
 
@@ -189,10 +189,10 @@
 
     // --- State Variables ---
     let baseCircleColors = [];
-    let intensity = 60;
-    let blurAmount = 30;
-    let minRadiusPercent = 5;
-    let maxRadiusPercent = 40;
+    let intensity = 80;
+    let blurAmount = 60;
+    let minRadiusPercent = 10;
+    let maxRadiusPercent = 60;
     let maxOpacity = 0.9;
     let speedMultiplier = 1.0;
     let circles = [];
@@ -203,9 +203,9 @@
     let statusTimeout = null;
 
     // Background state
-    let backgroundType = 'solid';
-    let backgroundColor1 = '#ffffff';
-    let backgroundColor2 = '#cccccc';
+    let backgroundType = 'radial';
+    let backgroundColor1 = '#ff77aa';
+    let backgroundColor2 = '#ffcc66';
 
     // --- Media Recorder State ---
     let mediaRecorder = null;
@@ -284,7 +284,8 @@
     function resizeCanvas() {
       const container = canvas.parentElement;
       canvasWidth = container.clientWidth;
-      canvasHeight = container.clientWidth * 0.6; // 60% ratio for a nice rectangular area
+      // Keep a decent aspect ratio
+      canvasHeight = Math.floor(canvasWidth * 0.6);
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
     }
@@ -340,18 +341,12 @@
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
-    /**
-     * Draw circles in a bokeh style:
-     * - Use a radial gradient from circle.color (at center) to transparent (at edges).
-     * - Apply a blur filter if supported.
-     * - Use a "lighter" blend mode for bright overlaps.
-     */
     function drawCircles() {
       ctx.save();
-      // Use "lighter" (or "screen") so overlapping circles become brighter
+      // Use "lighter" so overlapping circles glow more brightly
       ctx.globalCompositeOperation = 'lighter';
 
-      // If the browser supports canvas filters, apply blur. Otherwise fallback to shadowBlur.
+      // If the browser supports canvas filters, apply blur to each circle
       if ('filter' in ctx) {
         ctx.filter = `blur(${blurAmount}px)`;
         circles.forEach(circle => {
@@ -368,7 +363,7 @@
           ctx.fill();
         });
       } else {
-        // Fallback for older browsers: shadowBlur (not identical, but similar)
+        // Fallback for older browsers: shadowBlur
         circles.forEach(circle => {
           ctx.save();
           ctx.shadowBlur = blurAmount;
@@ -442,6 +437,7 @@
         animationFrameId = null;
         playBtn.disabled = false;
         pauseBtn.disabled = true;
+        // If paused, disallow starting a new recording
         startRecordBtn.disabled = true;
         stopRecordBtn.disabled = !isRecording;
         downloadWebmBtn.disabled = true;
@@ -495,7 +491,7 @@
     }
     function startRecording() {
       if (!window.MediaRecorder || !MediaRecorder.isTypeSupported(MimeType)) {
-        showStatus(`Error: Recording (${MimeType}) not supported.`);
+        showStatus(`Error: Recording (${MimeType}) not supported in this browser.`);
         console.error('MediaRecorder API or MimeType not supported.');
         return;
       }
@@ -559,6 +555,7 @@
 
     // --- Download Handlers ---
     downloadPngBtn.addEventListener('click', () => {
+      // Redraw final frame if paused
       if (isPaused) drawFrame();
       const link = document.createElement('a');
       link.download = 'bokeh-art-frame.png';
