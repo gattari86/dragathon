@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blur Art Animation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bokeh Blur Art</title>
   <style>
-    /* Professional, mobile-friendly styling */
+    /* --- Professional, mobile-friendly styling --- */
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -58,7 +58,7 @@
       }
     }
   </style>
-  <!-- Load ffmpeg.js from CDN for MP4 conversion -->
+  <!-- ffmpeg.js for optional MP4 conversion -->
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 </head>
 <body>
@@ -74,45 +74,51 @@
       <button id="startRecordBtn">Start Recording</button>
       <button id="stopRecordBtn" disabled>Stop Recording</button>
     </div>
+
+    <!-- Sliders for circle count, blur, size, etc. -->
     <div class="controls">
       <label>Intensity:
-        <input type="range" id="intensity" min="10" max="100" value="50">
-        <span id="intensityValue">50</span>
+        <input type="range" id="intensity" min="10" max="150" value="60">
+        <span id="intensityValue">60</span>
       </label>
       <label>Blur:
-        <input type="range" id="blur" min="0" max="30" value="15">
-        <span id="blurValue">15</span>
+        <input type="range" id="blur" min="0" max="60" value="30">
+        <span id="blurValue">30</span>
       </label>
       <label>Min Radius:
         <input type="range" id="minRadius" min="1" max="50" value="5">
         <span id="minRadiusValue">5</span>%
       </label>
       <label>Max Radius:
-        <input type="range" id="maxRadius" min="1" max="100" value="25">
-        <span id="maxRadiusValue">25</span>%
+        <input type="range" id="maxRadius" min="1" max="80" value="40">
+        <span id="maxRadiusValue">40</span>%
       </label>
       <label>Opacity:
-        <input type="range" id="opacity" min="0.1" max="1" step="0.01" value="0.7">
-        <span id="opacityValue">0.70</span>
+        <input type="range" id="opacity" min="0.1" max="1" step="0.01" value="0.9">
+        <span id="opacityValue">0.90</span>
       </label>
       <label>Speed:
         <input type="range" id="speed" min="0.1" max="5" step="0.1" value="1.0">
         <span id="speedValue">1.0</span>
       </label>
     </div>
+
+    <!-- Color pickers for circles -->
     <div class="controls">
       <div>
         <label>Circle Color 1:
-          <input type="color" class="circle-color" value="#ff0000">
+          <input type="color" class="circle-color" value="#ff5599">
         </label>
         <label>Circle Color 2:
-          <input type="color" class="circle-color" value="#00ff00">
+          <input type="color" class="circle-color" value="#55ffcc">
         </label>
         <label>Circle Color 3:
-          <input type="color" class="circle-color" value="#0000ff">
+          <input type="color" class="circle-color" value="#ffdd55">
         </label>
       </div>
     </div>
+
+    <!-- Background type + color pickers -->
     <div class="controls">
       <label><input type="radio" name="backgroundType" value="solid" checked> Solid Background</label>
       <label><input type="radio" name="backgroundType" value="linear"> Linear Gradient</label>
@@ -131,6 +137,8 @@
         <input type="color" id="bgColorGradient2" value="#cccccc">
       </label>
     </div>
+
+    <!-- Status indicators -->
     <div id="statusMessage" class="status"></div>
     <div id="recordingIndicator" class="status hidden">Recording...</div>
   </div>
@@ -139,6 +147,7 @@
     // --- DOM Elements ---
     const canvas = document.getElementById('artCanvas');
     const ctx = canvas.getContext('2d');
+
     // Buttons
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
@@ -148,6 +157,7 @@
     const downloadMp4Btn = document.getElementById('downloadMp4Btn');
     const startRecordBtn = document.getElementById('startRecordBtn');
     const stopRecordBtn = document.getElementById('stopRecordBtn');
+
     // Sliders & Value Displays
     const intensitySlider = document.getElementById('intensity');
     const intensityValue = document.getElementById('intensityValue');
@@ -161,8 +171,10 @@
     const opacityValue = document.getElementById('opacityValue');
     const speedSlider = document.getElementById('speed');
     const speedValue = document.getElementById('speedValue');
+
     // Circle Color Inputs
     const circleColorInputs = Array.from(document.querySelectorAll('.circle-color'));
+
     // Background Controls
     const backgroundTypeRadios = Array.from(document.querySelectorAll('input[name="backgroundType"]'));
     const solidColorOptionDiv = document.getElementById('solidColorOption');
@@ -170,17 +182,18 @@
     const bgColor1Input = document.getElementById('bgColor1');
     const bgColorGradient1Input = document.getElementById('bgColorGradient1');
     const bgColorGradient2Input = document.getElementById('bgColorGradient2');
+
     // Status/Indicators
     const statusMessage = document.getElementById('statusMessage');
     const recordingIndicator = document.getElementById('recordingIndicator');
 
     // --- State Variables ---
     let baseCircleColors = [];
-    let intensity = 50;
-    let blurAmount = 15;
+    let intensity = 60;
+    let blurAmount = 30;
     let minRadiusPercent = 5;
-    let maxRadiusPercent = 25;
-    let maxOpacity = 0.7;
+    let maxRadiusPercent = 40;
+    let maxOpacity = 0.9;
     let speedMultiplier = 1.0;
     let circles = [];
     let animationFrameId = null;
@@ -188,10 +201,11 @@
     let canvasWidth = 0;
     let canvasHeight = 0;
     let statusTimeout = null;
+
     // Background state
     let backgroundType = 'solid';
-    let backgroundColor1 = '#FFFFFF';
-    let backgroundColor2 = '#CCCCCC';
+    let backgroundColor1 = '#ffffff';
+    let backgroundColor2 = '#cccccc';
 
     // --- Media Recorder State ---
     let mediaRecorder = null;
@@ -204,11 +218,7 @@
     function getRandomFloat(min, max) {
       return Math.random() * (max - min) + min;
     }
-    function getRandomCircleColor() {
-      return baseCircleColors.length > 0
-        ? baseCircleColors[Math.floor(Math.random() * baseCircleColors.length)]
-        : '#000000';
-    }
+
     function hexToRgba(hex, alpha) {
       let r = 0, g = 0, b = 0;
       if (hex.length === 4) {
@@ -222,11 +232,14 @@
       }
       return `rgba(${r},${g},${b},${alpha})`;
     }
+
     function showStatus(message, duration = 3000) {
       clearTimeout(statusTimeout);
       statusMessage.textContent = message;
       if (duration > 0) {
-        statusTimeout = setTimeout(() => statusMessage.textContent = '', duration);
+        statusTimeout = setTimeout(() => {
+          statusMessage.textContent = '';
+        }, duration);
       }
     }
 
@@ -271,7 +284,7 @@
     function resizeCanvas() {
       const container = canvas.parentElement;
       canvasWidth = container.clientWidth;
-      canvasHeight = container.clientWidth * 0.6;
+      canvasHeight = container.clientWidth * 0.6; // 60% ratio for a nice rectangular area
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
     }
@@ -289,11 +302,12 @@
         const radius = getRandomFloat(finalMinRadiusPx, finalMaxRadiusPx);
         const angle = getRandomFloat(0, Math.PI * 2);
         const currentSpeed = baseSpeed * speedMultiplier;
+
         circles.push({
           x: getRandomFloat(radius, canvasWidth - radius),
           y: getRandomFloat(radius, canvasHeight - radius),
-          radius: radius,
-          color: getRandomCircleColor(),
+          radius,
+          color: baseCircleColors[Math.floor(Math.random() * baseCircleColors.length)],
           vx: Math.cos(angle) * currentSpeed,
           vy: Math.sin(angle) * currentSpeed,
           opacity: getRandomFloat(0.1, maxOpacity)
@@ -305,6 +319,8 @@
     // --- Drawing Functions ---
     function drawBackground() {
       ctx.filter = 'none';
+      ctx.globalCompositeOperation = 'source-over';
+
       if (backgroundType === 'solid') {
         ctx.fillStyle = backgroundColor1;
       } else if (backgroundType === 'linear') {
@@ -324,31 +340,55 @@
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
-    // Updated drawCircles() that checks for native filter support.
+    /**
+     * Draw circles in a bokeh style:
+     * - Use a radial gradient from circle.color (at center) to transparent (at edges).
+     * - Apply a blur filter if supported.
+     * - Use a "lighter" blend mode for bright overlaps.
+     */
     function drawCircles() {
       ctx.save();
+      // Use "lighter" (or "screen") so overlapping circles become brighter
+      ctx.globalCompositeOperation = 'lighter';
+
+      // If the browser supports canvas filters, apply blur. Otherwise fallback to shadowBlur.
       if ('filter' in ctx) {
-        // Modern browsers: use filter property
         ctx.filter = `blur(${blurAmount}px)`;
         circles.forEach(circle => {
+          const gradient = ctx.createRadialGradient(
+            circle.x, circle.y, 0,
+            circle.x, circle.y, circle.radius
+          );
+          gradient.addColorStop(0, hexToRgba(circle.color, circle.opacity));
+          gradient.addColorStop(1, hexToRgba(circle.color, 0));
+
           ctx.beginPath();
           ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
-          ctx.fillStyle = hexToRgba(circle.color, circle.opacity);
+          ctx.fillStyle = gradient;
           ctx.fill();
         });
       } else {
-        // Fallback: use shadowBlur (note: this is not a perfect replacement)
+        // Fallback for older browsers: shadowBlur (not identical, but similar)
         circles.forEach(circle => {
           ctx.save();
           ctx.shadowBlur = blurAmount;
           ctx.shadowColor = hexToRgba(circle.color, circle.opacity);
+
+          const gradient = ctx.createRadialGradient(
+            circle.x, circle.y, 0,
+            circle.x, circle.y, circle.radius
+          );
+          gradient.addColorStop(0, hexToRgba(circle.color, circle.opacity));
+          gradient.addColorStop(1, hexToRgba(circle.color, 0));
+
           ctx.beginPath();
           ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
-          ctx.fillStyle = hexToRgba(circle.color, circle.opacity);
+          ctx.fillStyle = gradient;
           ctx.fill();
           ctx.restore();
         });
       }
+
       ctx.restore();
     }
 
@@ -362,6 +402,7 @@
       circles.forEach(circle => {
         circle.x += circle.vx;
         circle.y += circle.vy;
+        // Bounce off edges
         if (circle.x - circle.radius < 0 || circle.x + circle.radius > canvasWidth) {
           circle.vx *= -1;
           circle.x = Math.max(circle.radius, Math.min(canvasWidth - circle.radius, circle.x));
@@ -441,6 +482,7 @@
       lastRecordingBlob = new Blob(recordedChunks, { type: MimeType });
       recordedChunks = [];
       mediaRecorder = null;
+
       startRecordBtn.disabled = isPaused;
       stopRecordBtn.disabled = true;
       regenerateBtn.disabled = false;
@@ -458,10 +500,12 @@
         return;
       }
       if (isRecording || isPaused) return;
+
       isRecording = true;
       recordedChunks = [];
       recordingIndicator.classList.remove('hidden');
       showStatus('Recording...', 0);
+
       startRecordBtn.disabled = true;
       stopRecordBtn.disabled = false;
       regenerateBtn.disabled = true;
@@ -470,6 +514,7 @@
       downloadMp4Btn.disabled = true;
       playBtn.disabled = true;
       pauseBtn.disabled = false;
+
       try {
         const stream = canvas.captureStream(30);
         mediaRecorder = new MediaRecorder(stream, { mimeType: MimeType });
@@ -516,7 +561,7 @@
     downloadPngBtn.addEventListener('click', () => {
       if (isPaused) drawFrame();
       const link = document.createElement('a');
-      link.download = 'blur-art-frame.png';
+      link.download = 'bokeh-art-frame.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
       showStatus("PNG frame downloaded");
@@ -526,7 +571,7 @@
         const url = URL.createObjectURL(lastRecordingBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'blur-art-animation.webm';
+        link.download = 'bokeh-art-animation.webm';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -549,7 +594,7 @@
         const url = URL.createObjectURL(mp4Blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'blur-art-animation.mp4';
+        link.download = 'bokeh-art-animation.mp4';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -563,28 +608,37 @@
     // --- Combined Event Listeners for Controls ---
     const allControls = [
       intensitySlider, blurSlider, minRadiusSlider, maxRadiusSlider, opacitySlider, speedSlider,
-      ...circleColorInputs, ...backgroundTypeRadios, bgColor1Input, bgColorGradient1Input, bgColorGradient2Input
+      ...circleColorInputs, ...backgroundTypeRadios,
+      bgColor1Input, bgColorGradient1Input, bgColorGradient2Input
     ];
     allControls.forEach(input => {
       input.addEventListener('input', (event) => {
-        const previousBgType = backgroundType;
+        const prevBgType = backgroundType;
         updateStateFromUI();
         const changedInput = event.target;
+
+        // If the user changed something that drastically alters the setup,
+        // regenerate the circles & background
         const requiresRegen = [
-          intensitySlider, minRadiusSlider, maxRadiusSlider, opacitySlider,
-          bgColor1Input, bgColorGradient1Input, bgColorGradient2Input, ...circleColorInputs
+          intensitySlider, minRadiusSlider, maxRadiusSlider,
+          opacitySlider, bgColor1Input,
+          bgColorGradient1Input, bgColorGradient2Input,
+          ...circleColorInputs
         ].includes(changedInput);
-        const backgroundTypeChanged = backgroundTypeRadios.includes(changedInput) && backgroundType !== previousBgType;
+
+        const backgroundTypeChanged = backgroundTypeRadios.includes(changedInput) && backgroundType !== prevBgType;
+
         if (requiresRegen || backgroundTypeChanged) {
           regenerateArt();
         } else if (changedInput === speedSlider) {
+          // Adjust circle velocities on the fly
           const baseDimension = Math.min(canvasWidth, canvasHeight);
           const baseSpeed = baseDimension * 0.001;
           circles.forEach(circle => {
-            const currentMagnitude = Math.sqrt(circle.vx * circle.vx + circle.vy * circle.vy);
+            const magnitude = Math.sqrt(circle.vx ** 2 + circle.vy ** 2);
             const targetSpeed = baseSpeed * speedMultiplier;
-            if (currentMagnitude > 0.0001) {
-              const scaleFactor = targetSpeed / currentMagnitude;
+            if (magnitude > 0.0001) {
+              const scaleFactor = targetSpeed / magnitude;
               circle.vx *= scaleFactor;
               circle.vy *= scaleFactor;
             } else {
@@ -595,9 +649,8 @@
           });
           showStatus("");
         } else if (changedInput === blurSlider) {
-          if (isPaused) {
-            drawFrame();
-          }
+          // If paused, redraw immediately so we see the new blur
+          if (isPaused) drawFrame();
         }
       });
     });
@@ -608,13 +661,18 @@
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         const wasRecording = isRecording;
-        if (wasRecording) { stopRecording(); showStatus("Resized - Recording stopped.", 5000); }
-        else { showStatus("Resizing...", 1000); }
+        if (wasRecording) {
+          stopRecording();
+          showStatus("Resized - Recording stopped.", 5000);
+        } else {
+          showStatus("Resizing...", 1000);
+        }
         pauseAnimation();
         updateStateFromUI();
         resizeCanvas();
         initializeCircles();
         drawFrame();
+
         isPaused = true;
         playBtn.disabled = false;
         pauseBtn.disabled = true;
@@ -622,7 +680,10 @@
         stopRecordBtn.disabled = true;
         downloadWebmBtn.disabled = true;
         downloadMp4Btn.disabled = true;
-        if (!wasRecording) { showStatus("Resized. Press Play."); }
+
+        if (!wasRecording) {
+          showStatus("Resized. Press Play.");
+        }
       }, 250);
     });
 
@@ -633,12 +694,14 @@
       initializeCircles();
       drawFrame();
       isPaused = true;
+
       playBtn.disabled = false;
       pauseBtn.disabled = true;
       startRecordBtn.disabled = true;
       stopRecordBtn.disabled = true;
       downloadWebmBtn.disabled = true;
       downloadMp4Btn.disabled = true;
+
       showStatus("Ready. Press Play.");
     };
 
