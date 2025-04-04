@@ -437,4 +437,22 @@
                 drawFrame();         // Draw initial frame
 
                 isPaused = true; // Always start paused after resize
-                playBtn.disabled = false; pauseBtn.disabled = true; startRecordBtn.disabled = true; stopRecordBtn.disabled
+                playBtn.disabled = false; pauseBtn.disabled = true; startRecordBtn.disabled = true; stopRecordBtn.disabled = true; downloadWebmBtn.disabled = true;
+                if (!wasRecording) { showStatus("Resized. Press Play."); }
+            }, 250);
+        });
+
+
+        // --- Initial Setup ---
+        window.onload = () => {
+             updateStateFromUI();
+             resizeCanvas();
+             initializeCircles();
+             drawFrame();
+
+             isPaused = true;
+             playBtn.disabled = false; pauseBtn.disabled = true; startRecordBtn.disabled = true; stopRecordBtn.disabled = true; downloadWebmBtn.disabled = true;
+             showStatus("Ready. Press Play.");
+        };
+
+    </script>
