@@ -209,11 +209,11 @@
     }
     function hexToRgba(hex, alpha) {
       let r = 0, g = 0, b = 0;
-      if (hex.length == 4) {
+      if (hex.length === 4) {
         r = parseInt(hex[1] + hex[1], 16);
         g = parseInt(hex[2] + hex[2], 16);
         b = parseInt(hex[3] + hex[3], 16);
-      } else if (hex.length == 7) {
+      } else if (hex.length === 7) {
         r = parseInt(hex[1] + hex[2], 16);
         g = parseInt(hex[3] + hex[4], 16);
         b = parseInt(hex[5] + hex[6], 16);
@@ -323,7 +323,9 @@
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
+    // Updated drawCircles() using ctx.save()/restore() to properly apply the blur filter
     function drawCircles() {
+      ctx.save();
       ctx.filter = `blur(${blurAmount}px)`;
       circles.forEach(circle => {
         ctx.beginPath();
@@ -331,7 +333,7 @@
         ctx.fillStyle = hexToRgba(circle.color, circle.opacity);
         ctx.fill();
       });
-      ctx.filter = 'none';
+      ctx.restore();
     }
 
     function drawFrame() {
@@ -420,7 +422,6 @@
     async function handleStopRecording() {
       isRecording = false;
       recordingIndicator.classList.add('hidden');
-      // Create blob and store it for download options
       lastRecordingBlob = new Blob(recordedChunks, { type: MimeType });
       recordedChunks = [];
       mediaRecorder = null;
