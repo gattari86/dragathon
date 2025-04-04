@@ -3,1066 +3,354 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Futuristic Metallic Animation Generator (Enhanced)</title>
+    <title>Abstract Blur Art Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
-
-    <style>
-        /* Styles largely identical, ensuring Poppins is available */
-        @font-face { font-family: 'LucideIcons'; src: url(https://cdn.jsdelivr.net/npm/lucide-static@latest/font/Lucide.ttf) format('truetype'); }
-        .lucide { font-family: 'LucideIcons'; font-size: 1.25rem; line-height: 1; vertical-align: middle; }
-        #canvas-container { width: 100%; height: 60vh; max-height: 500px; position: relative; overflow: hidden; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
-        canvas { display: block; width: 100%; height: 100%; }
-        #recording-indicator { position: absolute; top: 1rem; right: 1rem; width: 1rem; height: 1rem; background-color: red; border-radius: 50%; display: none; animation: pulse 1.5s infinite; z-index: 10; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        .btn { @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out; }
-        .btn-primary { @apply text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500; }
-        .btn-secondary { @apply text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500; }
-        .btn-danger { @apply text-white bg-red-600 hover:bg-red-700 focus:ring-red-500; }
-        .btn-disabled { @apply bg-gray-300 text-gray-500 cursor-not-allowed hover:bg-gray-300; }
-        #message-box { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.8); color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; z-index: 1000; display: none; font-family: 'Poppins', 'Inter', sans-serif; font-size: 0.875rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .hidden { display: none; }
-        .input-base { @apply mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed; }
-        .color-input { @apply p-1 h-10 w-full block bg-white border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-indigo-500 focus:border-indigo-500; }
-        #loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 20; display: flex; justify-content: center; align-items: center; color: white; font-size: 1.2rem; border-radius: 0.5rem; text-align: center; }
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #fff; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 1rem; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Ensure inputs and text use Poppins if available */
-        body, input, select, button, textarea { font-family: 'Poppins', 'Inter', sans-serif; }
-    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+      @font-face {
+        font-family: 'LucideIcons';
+        src: url(https://cdn.jsdelivr.net/npm/lucide-static@latest/font/Lucide.ttf) format('truetype');
+      }
+      .lucide {
+        font-family: 'LucideIcons';
+        font-size: 1.25rem; /* Adjust size as needed */
+        line-height: 1;
+        vertical-align: middle;
+      }
+      /* Basic styling */
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f3f4f6; /* Tailwind gray-100 */
+      }
+      /* Ensure canvas fills its container */
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background-color: #ffffff; /* White background for the art */
+        border-radius: 0.5rem; /* rounded-lg */
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-md */
+      }
+       /* Style sliders */
+      input[type="range"] {
+        appearance: none; /* Override default look */
+        width: 100%;
+        height: 8px;
+        background: #d1d5db; /* Tailwind gray-300 */
+        border-radius: 9999px; /* rounded-full */
+        outline: none;
+        opacity: 0.7;
+        transition: opacity .2s;
+      }
+      input[type="range"]:hover {
+        opacity: 1;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #4f46e5; /* Tailwind indigo-600 */
+        border-radius: 50%;
+        cursor: pointer;
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #4f46e5; /* Tailwind indigo-600 */
+        border-radius: 50%;
+        cursor: pointer;
+        border: none; /* Remove default border */
+      }
+       /* Style color inputs */
+      input[type="color"] {
+        appearance: none;
+        -moz-appearance: none;
+        -webkit-appearance: none;
+        width: 40px; /* Adjust size */
+        height: 40px;
+        background: none;
+        border: none;
+        padding: 0;
+        border-radius: 50%; /* Make it circular */
+        cursor: pointer;
+        border: 2px solid #d1d5db; /* Add a border */
+        overflow: hidden; /* Clip the inner color */
+      }
+      input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+      input[type="color"]::-webkit-color-swatch {
+        border: none;
+        border-radius: 50%;
+      }
+       input[type="color"]::-moz-color-swatch {
+         border: none;
+         border-radius: 50%;
+       }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
+<body class="flex flex-col lg:flex-row h-screen p-4 gap-4 bg-gray-100">
 
-    <div class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <h1 class="text-2xl md:text-3xl font-bold mb-6 text-center text-indigo-700">Futuristic Metallic Animation Generator</h1>
+    <div class="w-full lg:w-1/4 bg-white p-6 rounded-lg shadow-lg flex flex-col gap-6 overflow-y-auto">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Blur Art Controls</h1>
 
-        <div id="canvas-container" class="mb-6 bg-black">
-            <div id="loading-overlay">
-                 <div class="flex flex-col items-center">
-                     <div class="spinner"></div>
-                     <span id="loading-text">Loading Assets...</span>
-                 </div>
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Base Colors</label>
+            <div class="flex gap-2 flex-wrap">
+                <input type="color" id="color1" value="#FF6B6B" class="w-10 h-10 rounded-full border-2 border-gray-300 cursor-pointer">
+                <input type="color" id="color2" value="#4ECDC4" class="w-10 h-10 rounded-full border-2 border-gray-300 cursor-pointer">
+                <input type="color" id="color3" value="#45B7D1" class="w-10 h-10 rounded-full border-2 border-gray-300 cursor-pointer">
+                <input type="color" id="color4" value="#FED766" class="w-10 h-10 rounded-full border-2 border-gray-300 cursor-pointer">
+                <input type="color" id="color5" value="#F06595" class="w-10 h-10 rounded-full border-2 border-gray-300 cursor-pointer">
             </div>
-            <div id="recording-indicator" title="Recording..."></div>
-         </div>
+        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-             <div class="space-y-2"> <label for="color-palette">Color Palette:</label> <select id="color-palette" name="color-palette" class="input-base"><option value="metallic_cool">Metallic Cool</option><option value="metallic_warm">Metallic Warm</option><option value="rainbow">Rainbow</option><option value="vaporwave">Vaporwave</option><option value="monochrome">Monochrome</option><option value="custom">Custom</option></select> <div id="custom-colors" class="hidden space-y-2 mt-2"><label>Custom Colors (2-5):</label><input type="color" id="custom-color-1" value="#c0c0c0" class="color-input"><input type="color" id="custom-color-2" value="#44aadd" class="color-input"><input type="color" id="custom-color-3" value="#ffffff" class="color-input"><input type="color" id="custom-color-4" value="#888888" class="color-input"><input type="color" id="custom-color-5" value="#333333" class="color-input"><div class="flex items-center mt-2"><input id="use-palette-gradient" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"><label for="use-palette-gradient" class="ml-2 block text-sm text-gray-900">Use as Gradient</label></div></div> </div>
-             <div class="space-y-2"> <label for="movement-pattern">Movement Pattern:</label> <select id="movement-pattern" name="movement-pattern" class="input-base"><option value="vortex">Spinning Vortex</option><option value="grid">Pulsating Grid</option><option value="chaos">Morphing Chaos</option><option value="tunnel">Infinite Tunnel</option><option value="wave">Geometric Wave</option></select> </div>
-             <div class="space-y-2">
-                 <label for="shape-type">Object Type:</label>
-                 <select id="shape-type" name="shape-type" class="input-base">
-                    <option value="cube">Cubes</option>
-                    <option value="sphere">Spheres</option>
-                    <option value="torus">Torus Knots</option>
-                    <option value="icosahedron">Icosahedrons</option>
-                    <option value="mixed_geo">Mixed Geometry</option>
-                    <option value="text">Text Only</option>
-                    <option value="mixed_all">Mixed Geometry & Text</option>
-                </select>
-                <div id="text-options" class="space-y-2 mt-2 hidden">
-                    <label for="text-input">Text to Add:</label>
-                    <input type="text" id="text-input" name="text-input" value="Futuristic" class="input-base" placeholder="Enter text here...">
-                </div>
-                <div class="mt-4 space-y-2">
-                    <label for="shape-count">Object Count:</label>
-                    <input type="range" id="shape-count" name="shape-count" min="5" max="200" value="30" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                    <span id="shape-count-label" class="text-sm text-gray-500">30 objects</span>
-                </div>
-             </div>
-             <div class="space-y-2"> <label for="background-type">Background:</label> <select id="background-type" name="background-type" class="input-base"><option value="default">Default (Dark)</option><option value="solid">Solid Color</option><option value="gradient">Linear Gradient</option></select> <div id="solid-color-option" class="hidden mt-2"><label for="background-color-solid">Background Color:</label><input type="color" id="background-color-solid" value="#0a0a0a" class="color-input"></div> <div id="gradient-color-options" class="hidden space-y-2 mt-2"><label>Gradient Colors:</label><input type="color" id="background-color-gradient-1" value="#000020" class="color-input"><input type="color" id="background-color-gradient-2" value="#404080" class="color-input"><label for="gradient-direction">Direction:</label><select id="gradient-direction" name="gradient-direction" class="input-base"><option value="0">Top to Bottom</option><option value="1">Left to Right</option><option value="2">Top-Left to Bottom-Right</option><option value="3">Bottom to Top</option><option value="4">Bottom-Left to Top-Right</option></select></div> </div>
-         </div>
+        <div class="space-y-2">
+            <label for="intensity" class="block text-sm font-medium text-gray-700 flex justify-between">
+                <span>Intensity (Circles)</span>
+                <span id="intensityValue" class="font-semibold text-indigo-600">50</span>
+            </label>
+            <input type="range" id="intensity" name="intensity" min="10" max="200" value="50" class="w-full h-2 bg-gray-300 rounded-full appearance-none cursor-pointer range-lg">
+        </div>
 
-        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 pt-6 border-t border-gray-200">
-             <div class="flex items-center gap-2"> <label for="video-format" class="text-sm font-medium text-gray-700 whitespace-nowrap">Format:</label> <select id="video-format" name="video-format" class="input-base py-1.5"><option value="video/webm; codecs=vp9">WebM (VP9)</option><option value="video/webm; codecs=vp8">WebM (VP8)</option><option id="mp4-option" value="video/mp4">MP4 (H.264)</option></select> </div>
-             <button id="start-record-btn" class="btn btn-primary w-full sm:w-auto"><span class="lucide mr-2">&#9210;</span> Start Recording</button>
-             <button id="stop-record-btn" class="btn btn-danger w-full sm:w-auto" disabled><span class="lucide mr-2">&#9724;</span> Stop Recording</button>
-             <a id="download-link" class="btn btn-secondary w-full sm:w-auto hidden"><span class="lucide mr-2">&#11123;</span> Download Video</a>
-         </div>
-         <div class="mt-6 text-sm text-gray-600 bg-indigo-50 p-4 rounded-md border border-indigo-200">
-             <h3 class="font-semibold text-indigo-800 mb-2">How to Use:</h3>
-             <ol class="list-decimal list-inside space-y-1">
-                <li>Wait for assets to load (font/textures).</li>
-                <li>Adjust colors, movement, object type (including text), count (up to 200), and background.</li>
-                <li>Enter desired text if using 'Text Only' or 'Mixed Geometry & Text'.</li>
-                <li>Select video recording format (MP4 may not be supported by your browser; WebM is generally safer for recording).</li>
-                <li>Click "Start Recording", then "Stop Recording".</li>
-                <li>Click "Download Video" to save.</li>
-                <li>Note: Using text or high object counts (>100) can impact performance. Lower the count if needed. If the env map fails, a fallback is generated (may look less metallic).</li>
-             </ol>
-         </div>
+        <div class="space-y-2">
+            <label for="blur" class="block text-sm font-medium text-gray-700 flex justify-between">
+                <span>Blur Amount (px)</span>
+                <span id="blurValue" class="font-semibold text-indigo-600">15</span>
+            </label>
+            <input type="range" id="blur" name="blur" min="0" max="50" value="15" class="w-full h-2 bg-gray-300 rounded-full appearance-none cursor-pointer range-lg">
+        </div>
+
+        <div class="space-y-2">
+            <label for="minRadius" class="block text-sm font-medium text-gray-700 flex justify-between">
+                <span>Min Circle Size (%)</span>
+                <span id="minRadiusValue" class="font-semibold text-indigo-600">5</span>
+            </label>
+            <input type="range" id="minRadius" name="minRadius" min="1" max="30" value="5" class="w-full h-2 bg-gray-300 rounded-full appearance-none cursor-pointer range-lg">
+        </div>
+
+        <div class="space-y-2">
+            <label for="maxRadius" class="block text-sm font-medium text-gray-700 flex justify-between">
+                <span>Max Circle Size (%)</span>
+                <span id="maxRadiusValue" class="font-semibold text-indigo-600">25</span>
+            </label>
+            <input type="range" id="maxRadius" name="maxRadius" min="10" max="50" value="25" class="w-full h-2 bg-gray-300 rounded-full appearance-none cursor-pointer range-lg">
+        </div>
+
+         <div class="space-y-2">
+            <label for="opacity" class="block text-sm font-medium text-gray-700 flex justify-between">
+                <span>Max Opacity</span>
+                <span id="opacityValue" class="font-semibold text-indigo-600">0.6</span>
+            </label>
+            <input type="range" id="opacity" name="opacity" min="0.1" max="1.0" step="0.05" value="0.6" class="w-full h-2 bg-gray-300 rounded-full appearance-none cursor-pointer range-lg">
+        </div>
+
+        <div class="mt-auto pt-6 border-t border-gray-200 space-y-3">
+             <button id="regenerateBtn" class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                 <span class="lucide mr-2">&#xea4c;</span>
+                 Regenerate
+             </button>
+             <button id="downloadBtn" class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                 <span class="lucide mr-2">&#xe95f;</span>
+                 Download PNG
+             </button>
+        </div>
     </div>
 
-    <div id="message-box"></div>
-
-    <script id="vertexShader" type="shader/vertex">varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }</script>
-    <script id="fragmentShader" type="shader/fragment">varying vec2 vUv; uniform vec3 color1; uniform vec3 color2; uniform float direction; void main() { vec2 uv = vUv; float mixValue; if (direction == 0.0) { mixValue = uv.y; } else if (direction == 1.0) { mixValue = uv.x; } else if (direction == 2.0) { mixValue = (uv.x + uv.y) / 2.0; } else if (direction == 3.0) { mixValue = 1.0 - uv.y; } else if (direction == 4.0) { mixValue = (uv.x + (1.0 - uv.y)) / 2.0; } else { mixValue = uv.y; } gl_FragColor = vec4(mix(color1, color2, mixValue), 1.0); }</script>
+    <div class="w-full lg:w-3/4 h-full flex items-center justify-center">
+        <canvas id="artCanvas"></canvas>
+    </div>
 
     <script>
-        console.log("Script start."); // DIAGNOSTIC LOG
-
-        // --- Global Variables ---
-        // Largely unchanged
-        let scene, camera, renderer, shapes = [];
-        let backgroundPlane, backgroundMaterial;
-        let animationId;
-        let mediaRecorder;
-        let recordedChunks = [];
-        let currentPalette = [];
-        let usePaletteGradient = false;
-        let currentMovement = 'vortex';
-        let currentShapeType = 'cube';
-        let currentShapeCount = 30;
-        let currentText = 'Futuristic';
-        let loadedFont = null; // Will hold the loaded font object
-        let environmentMap = null; // Will hold the environment map texture
-        const clock = new THREE.Clock();
-        const defaultBgColor = 0x0a0a0a; // Dark default background
-
         // --- DOM Elements ---
-        // Unchanged - References HTML elements correctly
-        const canvasContainer = document.getElementById('canvas-container');
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const loadingText = document.getElementById('loading-text');
-        const colorPaletteSelect = document.getElementById('color-palette');
-        const customColorsDiv = document.getElementById('custom-colors');
-        const customColorInputs = [ /* ... */ document.getElementById('custom-color-1'), document.getElementById('custom-color-2'), document.getElementById('custom-color-3'), document.getElementById('custom-color-4'), document.getElementById('custom-color-5') ];
-        const usePaletteGradientCheckbox = document.getElementById('use-palette-gradient');
-        const movementPatternSelect = document.getElementById('movement-pattern');
-        const shapeTypeSelect = document.getElementById('shape-type');
-        const textOptionsDiv = document.getElementById('text-options');
-        const textInput = document.getElementById('text-input');
-        const shapeCountSlider = document.getElementById('shape-count');
-        const shapeCountLabel = document.getElementById('shape-count-label');
-        const backgroundTypeSelect = document.getElementById('background-type');
-        const solidColorOptionDiv = document.getElementById('solid-color-option');
-        const backgroundColorSolidInput = document.getElementById('background-color-solid');
-        const gradientColorOptionsDiv = document.getElementById('gradient-color-options');
-        const backgroundColorGradient1Input = document.getElementById('background-color-gradient-1');
-        const backgroundColorGradient2Input = document.getElementById('background-color-gradient-2');
-        const gradientDirectionSelect = document.getElementById('gradient-direction');
-        const videoFormatSelect = document.getElementById('video-format');
-        const mp4Option = document.getElementById('mp4-option');
-        const startRecordBtn = document.getElementById('start-record-btn');
-        const stopRecordBtn = document.getElementById('stop-record-btn');
-        const downloadLink = document.getElementById('download-link');
-        const recordingIndicator = document.getElementById('recording-indicator');
-        const messageBox = document.getElementById('message-box');
+        const canvas = document.getElementById('artCanvas');
+        const ctx = canvas.getContext('2d');
+        const regenerateBtn = document.getElementById('regenerateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const intensitySlider = document.getElementById('intensity');
+        const intensityValue = document.getElementById('intensityValue');
+        const blurSlider = document.getElementById('blur');
+        const blurValue = document.getElementById('blurValue');
+        const minRadiusSlider = document.getElementById('minRadius');
+        const minRadiusValue = document.getElementById('minRadiusValue');
+        const maxRadiusSlider = document.getElementById('maxRadius');
+        const maxRadiusValue = document.getElementById('maxRadiusValue');
+        const opacitySlider = document.getElementById('opacity');
+        const opacityValue = document.getElementById('opacityValue');
+        const colorInputs = [
+            document.getElementById('color1'),
+            document.getElementById('color2'),
+            document.getElementById('color3'),
+            document.getElementById('color4'),
+            document.getElementById('color5'),
+        ];
 
-        // --- Palettes ---
-        // Unchanged
-        const palettes = { /* ... */ metallic_cool: [0xc0c0c0, 0x808080, 0xadd8e6, 0x4682b4, 0x778899], metallic_warm: [0xb8860b, 0xffd700, 0xcd7f32, 0x8b4513, 0xdda0dd], rainbow: [0xff0000, 0xff7f00, 0xffff00, 0x00ff00, 0x0000ff, 0x4b0082, 0x9400d3], vaporwave: [0xff71ce, 0x01cdfe, 0x05ffa1, 0xb967ff, 0xfff79a], monochrome: [0x000000, 0x444444, 0x888888, 0xcccccc, 0xffffff], custom: [] };
+        // --- State Variables ---
+        let baseColors = [];
+        let intensity = 50;
+        let blurAmount = 15;
+        let minRadiusPercent = 5;
+        let maxRadiusPercent = 25;
+        let maxOpacity = 0.6;
 
-        // --- Asset Loading ---
-        function loadAssets() {
-            console.log("loadAssets() called.");
-            const fontLoader = new THREE.FontLoader();
-            const cubeTextureLoader = new THREE.CubeTextureLoader();
+        // --- Helper Functions ---
 
-            // *** FONT SELECTION ***
-            // NOTE: Using Helvetiker as default. If you get a Poppins *.typeface.json file,
-            // upload it somewhere accessible and replace the URL below.
-            // Example: const fontURL = '/path/to/your/Poppins_Regular.typeface.json';
-            const fontURL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json';
-            // const fontURL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/gentilis_regular.typeface.json'; // Another option
+        // Get a random integer between min (inclusive) and max (inclusive)
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
 
-            const envMapBaseURL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/textures/cube/pisa/';
-            const envMapURLs = [ 'px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png' ].map(f => envMapBaseURL + f);
+        // Get a random float between min (inclusive) and max (exclusive)
+        function getRandomFloat(min, max) {
+            return Math.random() * (max - min) + min;
+        }
 
-            loadingText.textContent = "Loading Font...";
-            console.log("Creating font promise for:", fontURL);
-            const fontPromise = new Promise((resolve, reject) => {
-                fontLoader.load(fontURL, resolve, undefined, (err) => {
-                     console.error("Font loading error:", err); // Log specific error
-                     reject(err);
-                });
+        // Get a random color from the baseColors array
+        function getRandomColor() {
+            if (baseColors.length === 0) return '#000000'; // Default to black if no colors
+            return baseColors[Math.floor(Math.random() * baseColors.length)];
+        }
+
+        // Convert hex color and alpha to rgba string
+        function hexToRgba(hex, alpha) {
+            let r = 0, g = 0, b = 0;
+            // 3 digits
+            if (hex.length == 4) {
+                r = parseInt(hex[1] + hex[1], 16);
+                g = parseInt(hex[2] + hex[2], 16);
+                b = parseInt(hex[3] + hex[3], 16);
+            }
+            // 6 digits
+            else if (hex.length == 7) {
+                r = parseInt(hex[1] + hex[2], 16);
+                g = parseInt(hex[3] + hex[4], 16);
+                b = parseInt(hex[5] + hex[6], 16);
+            }
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+
+        // --- Drawing Function ---
+        function drawArt() {
+            // Set canvas dimensions based on its container size
+            // Doing this also clears the canvas
+            const container = canvas.parentElement;
+            // Use clientWidth/Height for actual rendered size
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            // Clear canvas explicitly (though setting width/height does it)
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Apply the canvas-wide blur filter
+            // Note: Applying blur *after* drawing gives a different effect than blurring each circle
+            // This matches the reference image style more closely.
+            ctx.filter = `blur(${blurAmount}px)`;
+
+            // Determine min/max radius in pixels based on the smaller canvas dimension
+            const baseDimension = Math.min(canvas.width, canvas.height);
+            const minRadiusPx = (minRadiusPercent / 100) * baseDimension;
+            const maxRadiusPx = (maxRadiusPercent / 100) * baseDimension;
+
+
+            // Draw the circles
+            for (let i = 0; i < intensity; i++) {
+                const x = getRandomFloat(-maxRadiusPx, canvas.width + maxRadiusPx); // Allow drawing slightly off-canvas
+                const y = getRandomFloat(-maxRadiusPx, canvas.height + maxRadiusPx);
+                const radius = getRandomFloat(minRadiusPx, maxRadiusPx);
+                const color = getRandomColor();
+                // Use a random opacity up to the maxOpacity setting
+                const opacity = getRandomFloat(0.1, maxOpacity); // Ensure some minimum opacity
+
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(color, opacity);
+                ctx.fill();
+            }
+
+            // IMPORTANT: Reset filter after drawing so it doesn't affect future operations (like downloading)
+            // Or if you were drawing other non-blurred elements.
+             ctx.filter = 'none';
+        }
+
+         // --- Update State from Controls ---
+        function updateState() {
+            baseColors = colorInputs.map(input => input.value);
+            intensity = parseInt(intensitySlider.value, 10);
+            blurAmount = parseInt(blurSlider.value, 10);
+            minRadiusPercent = parseInt(minRadiusSlider.value, 10);
+            maxRadiusPercent = parseInt(maxRadiusSlider.value, 10);
+            maxOpacity = parseFloat(opacitySlider.value);
+
+            // Update display values
+            intensityValue.textContent = intensity;
+            blurValue.textContent = blurAmount;
+            minRadiusValue.textContent = minRadiusPercent;
+            maxRadiusValue.textContent = maxRadiusPercent;
+            opacityValue.textContent = maxOpacity.toFixed(2); // Format opacity value
+
+            // Ensure min radius is not greater than max radius
+            if (minRadiusPercent > maxRadiusPercent) {
+                minRadiusSlider.value = maxRadiusPercent;
+                minRadiusPercent = maxRadiusPercent;
+                minRadiusValue.textContent = minRadiusPercent;
+            }
+        }
+
+        // --- Event Listeners ---
+        regenerateBtn.addEventListener('click', () => {
+            updateState();
+            drawArt();
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            // Temporarily redraw without blur for download if needed?
+            // Or download as is. Let's download as is first.
+
+            // Create a temporary link element
+            const link = document.createElement('a');
+            link.download = 'blur-art.png'; // Filename
+
+            // Get the canvas data URL (PNG format)
+            // Important: Ensure drawing is complete before calling this.
+            // Since our drawing is synchronous, it's fine here.
+             link.href = canvas.toDataURL('image/png');
+
+            // Trigger the download
+            link.click();
+        });
+
+        // Add listeners to all controls to update state and redraw
+        [intensitySlider, blurSlider, minRadiusSlider, maxRadiusSlider, opacitySlider, ...colorInputs].forEach(input => {
+            input.addEventListener('input', () => {
+                 updateState();
+                 drawArt(); // Redraw immediately on slider change for live preview
             });
-
-            loadingText.textContent = "Loading Environment Map...";
-             console.log("Creating env map promise...");
-            const envMapPromise = new Promise((resolve, reject) => {
-                cubeTextureLoader.load(envMapURLs, resolve, undefined, (err) => {
-                    console.error("Env Map loading error:", err); // Log specific error
-                    reject(err);
-                });
-            });
-
-             console.log("Waiting for promises to settle...");
-            Promise.allSettled([fontPromise, envMapPromise])
-                .then((results) => {
-                     console.log("Promises settled. Results:", results);
-                    let loadedEnvMapTexture = null;
-
-                    // Process font result
-                    loadingText.textContent = "Processing Font...";
-                    if (results[0].status === 'fulfilled') {
-                        loadedFont = results[0].value;
-                         console.log("Font promise fulfilled.");
-                    } else {
-                         console.error('Font loading failed:', results[0].reason);
-                        showMessage('Error: Failed to load font. Text features disabled.', true);
-                        // Disable text options if font fails
-                        shapeTypeSelect.querySelector('option[value="text"]').disabled = true;
-                        shapeTypeSelect.querySelector('option[value="mixed_all"]').disabled = true;
-                        if(currentShapeType === 'text' || currentShapeType === 'mixed_all') {
-                           shapeTypeSelect.value = 'cube'; // Fallback to cubes
-                           currentShapeType = 'cube';
-                           textOptionsDiv.classList.add('hidden');
-                        }
-                    }
-
-                    // Process environment map result
-                    loadingText.textContent = "Processing Environment Map...";
-                    if (results[1].status === 'fulfilled') {
-                        loadedEnvMapTexture = results[1].value;
-                        loadedEnvMapTexture.encoding = THREE.sRGBEncoding; // Correct encoding for env maps
-                         console.log("Env map promise fulfilled.");
-                    } else {
-                         console.error('Env map loading failed:', results[1].reason);
-                        showMessage('Warning: Failed env map load. Generating fallback...', false);
-                        // Fallback will be generated in initThreeJS
-                    }
-
-                    // Now initialize the scene
-                    loadingText.textContent = "Initializing Scene...";
-                     console.log("Calling initThreeJS...");
-                    try {
-                        initThreeJS(loadedFont, loadedEnvMapTexture); // Pass loaded assets
-                    } catch (initError) {
-                         console.error("CRITICAL ERROR during initThreeJS:", initError);
-                        showMessage(`FATAL: Initialization failed: ${initError.message}. Check console.`, true);
-                        loadingText.textContent = "Initialization Failed!";
-                        // Keep overlay to show error
-                        return; // Stop further execution
-                    }
-
-                    // Hide loading overlay only if init didn't throw a critical error
-                    if (renderer) { // Check if renderer was successfully created
-                        loadingOverlay.style.display = 'none';
-                        console.log("Initialization complete (overlay hidden).");
-                    }
-                })
-                .catch(error => {
-                    // Catch errors in Promise.allSettled or .then() synchronous code
-                     console.error("CRITICAL ERROR in Promise chain:", error);
-                    showMessage(`FATAL: Asset loading failed: ${error.message}. Check console.`, true);
-                    loadingText.textContent = "Loading Failed!";
-                    // Keep overlay to show error
-                });
-        }
-
-        // --- Initialization (Receives loaded assets) ---
-        function initThreeJS(font, loadedEnvMap) { // Accept loaded assets
-             console.log("initThreeJS() called.");
-            // Store loaded assets globally
-            loadedFont = font;
-            environmentMap = loadedEnvMap;
-
-            console.log("Setting up scene...");
-            scene = new THREE.Scene();
-
-            const aspectRatio = canvasContainer.clientWidth / canvasContainer.clientHeight;
-            camera = new THREE.PerspectiveCamera(75, aspectRatio, 0.1, 1000);
-            camera.position.z = 50; // Adjusted camera distance slightly
-
-             console.log("Setting up renderer...");
-            renderer = new THREE.WebGLRenderer({
-                antialias: true,
-                preserveDrawingBuffer: true // Important for canvas.captureStream()
-            });
-            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
-            renderer.setClearColor(defaultBgColor, 1.0); // Set initial clear color
-            renderer.outputEncoding = THREE.sRGBEncoding; // Correct color space
-            renderer.toneMapping = THREE.ACESFilmicToneMapping; // ACES Filmic for better highlights/contrast
-            renderer.toneMappingExposure = 1.0; // Adjust exposure if needed
-            canvasContainer.appendChild(renderer.domElement);
-            console.log("Renderer created and appended.");
-
-             // Generate Fallback Env Map if loading failed
-             if (!environmentMap) {
-                 console.log("Attempting to generate fallback environment map...");
-                 try {
-                    // Simple scene for fallback generation
-                    const fallbackScene = new THREE.Scene();
-                    fallbackScene.background = new THREE.Color(0x333344); // Dark blueish fallback background
-                    const fbLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
-                    fallbackScene.add(fbLight);
-
-                    const cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 256, {
-                        format: THREE.RGBFormat,
-                        generateMipmaps: true,
-                        minFilter: THREE.LinearMipmapLinearFilter,
-                        encoding: THREE.sRGBEncoding
-                    });
-                    const cubeCamera = new THREE.CubeCamera( 1, 1000, cubeRenderTarget );
-                    console.log("Updating fallback cubeCamera...");
-                    cubeCamera.update( renderer, fallbackScene ); // Render the simple fallback scene
-                    environmentMap = cubeRenderTarget.texture;
-                     console.log("Fallback environment map generated successfully.");
-                     showMessage('Using generated fallback environment map.', false);
-                 } catch (error) {
-                     console.error("Error generating fallback env map:", error);
-                     showMessage('Error generating fallback environment map. Metallic effect may be reduced.', true);
-                     environmentMap = null; // Ensure it's null if generation failed
-                 }
-             }
-             // Apply the loaded or generated environment map to the main scene
-             scene.environment = environmentMap;
-             console.log("Scene environment set.");
-
-
-            // Lighting (Slightly adjusted intensity)
-             console.log("Adding lights...");
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Slightly less ambient
-            scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); // Slightly less directional
-            directionalLight.position.set(5, 10, 7.5); // Adjusted position
-            scene.add(directionalLight);
-            // Removed Point Light for cleaner reflections from env map primarily
-
-            console.log("Creating background plane...");
-            createBackgroundPlane(); // For shader background
-
-            // Initial setup
-             console.log("Performing initial UI setup and shape creation...");
-            // Read initial values from UI
-            currentPalette = palettes[colorPaletteSelect.value].map(h => new THREE.Color(h)); // Initialize palette
-            currentMovement = movementPatternSelect.value;
-            currentShapeType = shapeTypeSelect.value;
-            currentText = textInput.value || 'Default'; // Ensure text isn't empty
-            currentShapeCount = parseInt(shapeCountSlider.value, 10);
-            shapeCountLabel.textContent = `${currentShapeCount} objects`; // Update label initially
-            textOptionsDiv.classList.toggle('hidden', !(currentShapeType === 'text' || currentShapeType === 'mixed_all'));
-
-            updateBackground(); // Set initial background
-            createShapes(); // Create initial shapes
-            checkMp4Support(); // Check recording formats
-
-            console.log("Starting animation loop...");
-            startAnimation(); // Start the main loop
-
-            // Event Listeners
-            window.addEventListener('resize', onWindowResize, false);
-            setupEventListeners(); // Setup UI event listeners
-
-            console.log("initThreeJS() finished.");
-        }
-
-        // --- Background Plane Creation ---
-        function createBackgroundPlane() {
-             const geometry = new THREE.PlaneGeometry(2, 2); // Covers the entire viewport
-             const uniforms = {
-                 color1: { value: new THREE.Color(0x1e3a8a) }, // Default gradient start
-                 color2: { value: new THREE.Color(0xf472b6) }, // Default gradient end
-                 direction: { value: 0.0 } // Default direction (Top to Bottom)
-             };
-             backgroundMaterial = new THREE.ShaderMaterial({
-                 uniforms: uniforms,
-                 vertexShader: document.getElementById('vertexShader').textContent,
-                 fragmentShader: document.getElementById('fragmentShader').textContent,
-                 depthWrite: false, // Don't write to depth buffer
-                 depthTest: false  // Don't test against depth buffer
-             });
-             backgroundPlane = new THREE.Mesh(geometry, backgroundMaterial);
-             backgroundPlane.position.z = -500; // Place it far behind objects
-             backgroundPlane.visible = false; // Initially hidden
-             backgroundPlane.frustumCulled = false; // Ensure it's always rendered
-             scene.add(backgroundPlane);
-        }
-
-
-        // --- Shape & Text Creation ---
-        function createShapes() {
-            console.log(`Creating shapes. Type: ${currentShapeType}, Count: ${currentShapeCount}, Text: "${currentText}"`);
-             if(!renderer || !scene) {
-                 console.warn("Renderer or Scene not ready for createShapes.");
-                 return;
-             }
-
-            // Clear existing shapes
-            shapes.forEach(shape => scene.remove(shape));
-            shapes = []; // Reset the array
-
-            const isTextOnly = currentShapeType === 'text';
-            const isMixedAll = currentShapeType === 'mixed_all';
-            const includeText = isTextOnly || isMixedAll;
-            const includeGeometry = currentShapeType !== 'text'; // Any type except 'Text Only' includes geometry
-
-            // Check font requirement
-            if (includeText && !loadedFont) {
-                showMessage("Cannot create text: Font not loaded.", true);
-                console.error("Attempted to create text shapes without a loaded font.");
-                // Optionally switch to a non-text shape type as fallback
-                // shapeTypeSelect.value = 'cube';
-                // currentShapeType = 'cube';
-                // textOptionsDiv.classList.add('hidden');
-                return; // Stop creation if font needed but unavailable
-            }
-            if (includeText && (!currentText || currentText.trim() === "")) {
-                showMessage("Cannot create text: Text input is empty.", true);
-                return; // Don't create empty text
-            }
-
-            for (let i = 0; i < currentShapeCount; i++) {
-                let geometry;
-                let isThisShapeText = false; // Flag for this specific shape
-
-                if (isTextOnly) {
-                    isThisShapeText = true;
-                } else if (isMixedAll) {
-                    isThisShapeText = Math.random() < 0.3; // ~30% chance of being text in mixed mode
-                }
-
-                // Create geometry
-                if (isThisShapeText) {
-                    try {
-                        geometry = new THREE.TextGeometry(currentText, {
-                            font: loadedFont,
-                            size: 3,       // Adjust size as needed
-                            height: 0.5,   // Extrusion depth
-                            curveSegments: 6, // Increased for smoother curves
-                            bevelEnabled: true,
-                            bevelThickness: 0.1,
-                            bevelSize: 0.05,
-                            bevelOffset: 0,
-                            bevelSegments: 3
-                        });
-                        geometry.center(); // Center the text geometry
-                    } catch(e) {
-                        console.error("Error creating TextGeometry:", e);
-                        showMessage(`Error creating text geometry: ${e.message}`, true);
-                        continue; // Skip this shape if text creation fails
-                    }
-                } else if (includeGeometry) {
-                    const geoType = (currentShapeType === 'mixed_geo' || currentShapeType === 'mixed_all') ? 'mixed' : currentShapeType;
-                    geometry = getGeometry(geoType); // Use helper function
-                } else {
-                    continue; // Should not happen based on logic, but safe fallback
-                }
-
-                if (!geometry) {
-                     console.warn("Geometry creation failed for shape index:", i);
-                     continue; // Skip if geometry is null/undefined
-                }
-
-                // Create material
-                // *** Metallic Look defined here ***
-                const material = new THREE.MeshStandardMaterial({
-                    color: getRandomPaletteColor(i / currentShapeCount), // Base color from palette
-                    metalness: 0.8,      // Increased metalness slightly
-                    roughness: 0.25,     // Slightly less rough for more shine
-                    envMap: environmentMap, // Apply the environment map for reflections
-                    envMapIntensity: 1.0, // Intensity of env map contribution
-                    transparent: false,  // Generally false for solid metal, unless effect desired
-                    opacity: 1.0,
-                    // side: THREE.DoubleSide // Useful for text or thin objects if back needs rendering
-                });
-
-                const shape = new THREE.Mesh(geometry, material);
-
-                // Initial random position, rotation, and scale
-                const scaleFactor = isThisShapeText ? 1.0 : Math.random() * 1.5 + 0.8; // Text scale vs Geo scale
-                shape.scale.setScalar(scaleFactor);
-                shape.position.set(
-                    (Math.random() - 0.5) * 100,
-                    (Math.random() - 0.5) * 100,
-                    (Math.random() - 0.5) * 100
-                );
-                shape.rotation.set(
-                    Math.random() * Math.PI * 2,
-                    Math.random() * Math.PI * 2,
-                    Math.random() * Math.PI * 2
-                );
-
-                shapes.push(shape);
-                scene.add(shape);
-            }
-            console.log(`Added ${shapes.length} shapes to the scene.`);
-             // Trigger a palette update in case colors need refreshing after recreation
-             // updatePalette(); // Might not be needed if getRandomPaletteColor is sufficient
-        }
-
-
-        // --- Geometry Helper (Cached) ---
-        function getGeometry(type) {
-             // Use 'mixed' as a special keyword for random selection
-             if(type === 'mixed' || type === 'mixed_geo'){ // Ensure 'mixed_geo' also triggers random
-                 const geoTypes = ['cube', 'sphere', 'torus', 'icosahedron'];
-                 const randomType = geoTypes[Math.floor(Math.random() * geoTypes.length)];
-                 return getGeometry(randomType); // Recursive call with a specific type
-             }
-
-             // Simple caching mechanism
-             if (!getGeometry.cache) {
-                 getGeometry.cache = {};
-             }
-             if (getGeometry.cache[type]) {
-                 // Return a clone to avoid shared geometry issues if transforms differ later
-                 // return getGeometry.cache[type].clone();
-                 // For this use case where geometry doesn't change per-instance, direct return is fine
-                 return getGeometry.cache[type];
-             }
-
-             let geometry;
-             switch (type) {
-                 case 'sphere':
-                     geometry = new THREE.SphereGeometry(1.2, 32, 16);
-                     break;
-                 case 'torus':
-                     // geometry = new THREE.TorusGeometry(1, 0.4, 16, 100); // Simpler Torus
-                     geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16); // Original Torus Knot
-                     break;
-                 case 'icosahedron':
-                     geometry = new THREE.IcosahedronGeometry(1.5);
-                     break;
-                 case 'cube':
-                 default: // Default to Cube
-                     geometry = new THREE.BoxGeometry(1.8, 1.8, 1.8);
-                     break;
-             }
-
-             getGeometry.cache[type] = geometry; // Store in cache
-             return geometry;
-        }
-
-        // --- Palette Management ---
-        function updatePalette() {
-            const selectedPalette = colorPaletteSelect.value;
-            usePaletteGradient = usePaletteGradientCheckbox.checked && selectedPalette === 'custom';
-
-            if (selectedPalette === 'custom') {
-                customColorsDiv.classList.remove('hidden');
-                currentPalette = customColorInputs
-                    .map(input => new THREE.Color(input.value))
-                    .filter((color, index) => customColorInputs[index].value); // Ensure empty inputs don't create default colors
-
-                if (currentPalette.length < 2) {
-                    showMessage("Custom palette needs at least 2 valid colors.", true);
-                    // Fallback to a default if custom is invalid
-                    currentPalette = palettes.metallic_cool.map(hex => new THREE.Color(hex));
-                    usePaletteGradient = false; // Disable gradient if fallback
-                }
-            } else {
-                customColorsDiv.classList.add('hidden');
-                currentPalette = palettes[selectedPalette].map(hex => new THREE.Color(hex));
-                usePaletteGradient = false; // No gradient for predefined palettes
-            }
-             console.log(`Palette updated. Using: ${selectedPalette}. Gradient: ${usePaletteGradient}. Colors:`, currentPalette.map(c=>c.getHexString()));
-
-            // Apply new colors to existing shapes immediately
-            shapes.forEach((shape, index) => {
-                if (shape.material && shape.material.color) {
-                    shape.material.color.copy(getRandomPaletteColor(index / shapes.length));
-                }
-            });
-        }
-
-        // --- Get Random Palette Color ---
-        function getRandomPaletteColor(t = Math.random()) { // t is normalized value (0 to 1) for gradient
-             if (currentPalette.length === 0) {
-                 return new THREE.Color(0xc0c0c0); // Default silver if no palette
-             }
-
-             if (usePaletteGradient && currentPalette.length >= 2) {
-                 // Interpolate between colors for gradient effect
-                 const segment = 1 / (currentPalette.length - 1);
-                 const index = Math.min(Math.floor(t / segment), currentPalette.length - 2);
-                 const localT = (t % segment) / segment;
-                 // console.log(`Gradient t=${t.toFixed(2)}, index=${index}, localT=${localT.toFixed(2)}`)
-                 return new THREE.Color().lerpColors(currentPalette[index], currentPalette[index + 1], localT);
-             } else {
-                 // Pick a random color from the palette
-                 return currentPalette[Math.floor(Math.random() * currentPalette.length)];
-             }
-        }
-
-
-        // --- Background Management ---
-        function updateBackground() {
-             if(!scene || !renderer || !backgroundPlane || !backgroundMaterial) return; // Ensure elements exist
-
-            const type = backgroundTypeSelect.value;
-            solidColorOptionDiv.classList.toggle('hidden', type !== 'solid');
-            gradientColorOptionsDiv.classList.toggle('hidden', type !== 'gradient');
-
-            if (type === 'gradient') {
-                const color1 = backgroundColorGradient1Input.value;
-                const color2 = backgroundColorGradient2Input.value;
-                const direction = parseFloat(gradientDirectionSelect.value);
-
-                // Update shader uniforms
-                if (backgroundMaterial.uniforms) {
-                    backgroundMaterial.uniforms.color1.value.set(color1);
-                    backgroundMaterial.uniforms.color2.value.set(color2);
-                    backgroundMaterial.uniforms.direction.value = direction;
-                }
-                backgroundPlane.visible = true; // Show the shader plane
-                scene.background = null; // Remove solid color background
-                renderer.setClearColor(0x000000, 0); // Make renderer clear if needed (usually not)
-
-            } else {
-                backgroundPlane.visible = false; // Hide the shader plane
-                const bgColor = (type === 'solid') ? backgroundColorSolidInput.value : defaultBgColor;
-                const colorObject = new THREE.Color(bgColor);
-                scene.background = colorObject; // Set solid color background
-                renderer.setClearColor(colorObject, 1.0); // Match renderer clear color
-            }
-            console.log(`Background updated. Type: ${type}`);
-        }
-
-        // --- Animation Loop ---
-        function animate() {
-             if (!renderer || !scene || !camera) {
-                 console.warn("Animation stopped: Missing core components.");
-                 return; // Stop if critical components are missing
-             }
-            animationId = requestAnimationFrame(animate); // Request next frame
-
-            const delta = clock.getDelta();
-            const time = clock.getElapsedTime();
-
-            // Apply movement patterns
-            applyMovementPattern(time, delta);
-
-            // Optional: Per-frame color updates (can be performance intensive)
-            shapes.forEach((shape, index) => {
-                 if (usePaletteGradient) {
-                     // Update color based on time/position if using gradient
-                     const gradientTime = (Math.sin(time * 0.5 + index * 0.1) + 1) / 2; // Example time-based gradient shift
-                     if (shape.material && shape.material.color) {
-                        // Ensure color property exists before copying
-                        shape.material.color.copy(getRandomPaletteColor(gradientTime));
-                     }
-                 }
-                 // Add other per-frame updates if needed
-            });
-
-            renderer.render(scene, camera); // Render the scene
-        }
-
-        // --- Start/Stop Animation ---
-        function startAnimation() {
-            if (animationId) cancelAnimationFrame(animationId); // Clear previous loop if any
-            console.log("Starting animation.");
-            animate(); // Start the loop
-        }
-        function stopAnimation() {
-             if (animationId) {
-                cancelAnimationFrame(animationId);
-                animationId = null; // Reset animation ID
-                console.log("Animation stopped.");
-             }
-        }
-
-
-        // --- Movement Patterns ---
-        // (Unchanged from your provided code, seems functional)
-        function applyMovementPattern(time, delta) {
-            const speed = 0.5, scaleSpeed = 0.3, rotationSpeed = 0.4;
-            shapes.forEach((shape, index) => {
-                const offsetTime = time + index * 0.1; // Offset for variation
-                switch (currentMovement) {
-                    case 'vortex':
-                        shape.position.x = Math.sin(offsetTime * speed) * (25 + index * 0.1);
-                        shape.position.y = Math.cos(offsetTime * speed) * (25 + index * 0.1);
-                        shape.position.z = Math.sin(offsetTime * speed * 0.5) * 35 - 35;
-                        shape.rotation.x += delta * rotationSpeed;
-                        shape.rotation.y += delta * rotationSpeed * 1.2;
-                        break;
-                    case 'grid':
-                        const gridSize = Math.ceil(Math.sqrt(currentShapeCount));
-                        const spacing = 12;
-                        const gridX = (index % gridSize - gridSize / 2 + 0.5) * spacing;
-                        const gridY = (Math.floor(index / gridSize) - gridSize / 2 + 0.5) * spacing;
-                        shape.position.set(gridX, gridY, Math.sin(offsetTime * 0.5) * 18);
-                        const scale = 1 + Math.sin(offsetTime * scaleSpeed * 2) * 0.5;
-                        if (shape.geometry && !(shape.geometry instanceof THREE.TextGeometry)) { // Avoid scaling text disproportionately if needed
-                             shape.scale.set(scale, scale, scale);
-                        }
-                        shape.rotation.z += delta * rotationSpeed * 0.5;
-                        break;
-                    case 'chaos':
-                        shape.position.x += (Math.random() - 0.5) * delta * 25;
-                        shape.position.y += (Math.random() - 0.5) * delta * 25;
-                        shape.position.z += (Math.random() - 0.5) * delta * 25;
-                        shape.position.clampScalar(-70, 70); // Keep within bounds
-                        shape.rotation.x += delta * rotationSpeed * (Math.random() - 0.5) * 2;
-                        shape.rotation.y += delta * rotationSpeed * (Math.random() - 0.5) * 2;
-                        if (shape.geometry && !(shape.geometry instanceof THREE.TextGeometry)) {
-                           shape.scale.setScalar(1 + Math.sin(offsetTime * scaleSpeed) * 0.3);
-                        }
-                        break;
-                    case 'tunnel':
-                         shape.position.z += delta * 35 * (1 + index * 0.01);
-                         shape.rotation.z += delta * rotationSpeed * 2;
-                         shape.rotation.x += delta * rotationSpeed * 0.5;
-                         const radius = 18 + Math.sin(offsetTime * 0.2) * 6;
-                         const angle = offsetTime * 0.3 + index * Math.PI * 0.1;
-                         shape.position.x = Math.cos(angle) * radius;
-                         shape.position.y = Math.sin(angle) * radius;
-
-                         // Reset position when object goes past camera
-                         if (shape.position.z > camera.position.z) {
-                             shape.position.z = -180 - Math.random() * 60; // Reset behind the far plane
-                             // Optionally re-randomize color on reset if not using gradient
-                             if (!usePaletteGradient && shape.material && shape.material.color) {
-                                 shape.material.color.copy(getRandomPaletteColor());
-                             }
-                         }
-                         break;
-                     case 'wave':
-                         const waveSpeed = 0.8, waveAmplitude = 18, waveFrequency = 0.1;
-                         const columns = 15; // How many objects wide the wave is
-                         shape.position.x = (index % columns - (columns / 2 - 0.5)) * 6;
-                         shape.position.y = Math.sin(shape.position.x * waveFrequency + time * waveSpeed) * waveAmplitude;
-                         shape.position.z = Math.cos(time * waveSpeed * 0.7 + index * 0.1) * 25 - 10;
-                         shape.rotation.y += delta * rotationSpeed;
-                         if (shape.geometry && !(shape.geometry instanceof THREE.TextGeometry)) {
-                             shape.scale.setScalar(1 + Math.cos(time * waveSpeed + index * 0.2) * 0.4);
-                         }
-                         break;
-                }
-            });
-        }
-
-        // --- Event Handlers Setup ---
-        function setupEventListeners() {
-            console.log("Setting up event listeners.");
-            window.addEventListener('resize', onWindowResize, false);
-
-            colorPaletteSelect.addEventListener('change', updatePalette);
-            usePaletteGradientCheckbox.addEventListener('change', updatePalette);
-            customColorInputs.forEach(input => input.addEventListener('input', () => {
-                if (colorPaletteSelect.value === 'custom') updatePalette();
-            }));
-
-            movementPatternSelect.addEventListener('change', (e) => {
-                currentMovement = e.target.value;
-                 // Optionally recreate shapes if movement significantly changes structure needs
-                 // createShapes();
-                 // Or just update palette/colors if movement mainly affects color patterns
-                 updatePalette(); // Re-apply colors based on new pattern potentially
-            });
-
-            shapeTypeSelect.addEventListener('change', (e) => {
-                currentShapeType = e.target.value;
-                textOptionsDiv.classList.toggle('hidden', !(currentShapeType === 'text' || currentShapeType === 'mixed_all'));
-                if (!loadedFont && (currentShapeType === 'text' || currentShapeType === 'mixed_all')) {
-                     showMessage("Font not loaded, cannot select text options.", true);
-                     // Optionally force selection back to a non-text option
-                     shapeTypeSelect.value = 'cube';
-                     currentShapeType = 'cube';
-                     textOptionsDiv.classList.add('hidden');
-                }
-                createShapes(); // Recreate shapes for the new type
-            });
-
-            textInput.addEventListener('input', (e) => { // Use 'input' for live updates
-                currentText = e.target.value || 'Default'; // Use default if cleared
-                // Only recreate if a text type is active and text actually changed
-                if (currentShapeType === 'text' || currentShapeType === 'mixed_all') {
-                    // Debounce this? Heavy operation. For now, direct call.
-                    createShapes();
-                }
-            });
-
-            shapeCountSlider.addEventListener('input', (e) => { // Update label live
-                currentShapeCount = parseInt(e.target.value, 10);
-                shapeCountLabel.textContent = `${currentShapeCount} objects`;
-            });
-            shapeCountSlider.addEventListener('change', createShapes); // Recreate shapes on release
-
-            backgroundTypeSelect.addEventListener('change', updateBackground);
-            backgroundColorSolidInput.addEventListener('input', updateBackground); // Live update for color picker
-            backgroundColorGradient1Input.addEventListener('input', updateBackground);
-            backgroundColorGradient2Input.addEventListener('input', updateBackground);
-            gradientDirectionSelect.addEventListener('change', updateBackground);
-
-             // Recording Buttons
-             startRecordBtn.addEventListener('click', startRecording);
-             stopRecordBtn.addEventListener('click', stopRecording);
-
-             // Prevent download link default behavior if href is '#' initially
-             downloadLink.addEventListener('click', (e) => {
-                 if (!downloadLink.href || downloadLink.href.endsWith('#')) {
-                     e.preventDefault();
-                     showMessage("No recording available to download.", true);
-                 }
-             });
-        }
-
-
-        // --- Window Resize ---
-        function onWindowResize() {
-            if (!renderer || !camera || !canvasContainer) return; // Safety check
-
-            const width = canvasContainer.clientWidth;
-            const height = canvasContainer.clientHeight;
-
-            if (width === 0 || height === 0) return; // Avoid issues if container is hidden/zero-sized
-
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix(); // Update camera projection
-
-            renderer.setSize(width, height); // Resize renderer
-            console.log(`Resized to ${width}x${height}`);
-        }
-
-        // --- MP4 Support Check ---
-        function checkMp4Support() {
-            const mimeType = 'video/mp4';
-            const option = document.getElementById('mp4-option');
-            let supported = false;
-            if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
-                supported = MediaRecorder.isTypeSupported(mimeType);
-            }
-
-            if (supported) {
-                option.disabled = false;
-                console.log("MP4 recording seems supported.");
-            } else {
-                option.disabled = true;
-                // If MP4 was selected by default but not supported, switch to WebM
-                if (videoFormatSelect.value === mimeType) {
-                    videoFormatSelect.value = 'video/webm; codecs=vp9'; // Default to VP9
-                }
-                showMessage('Note: MP4 recording might not be supported by your browser. WebM recommended for recording.');
-                 console.warn("MP4 recording not supported by this browser.");
-            }
-        }
-
-        // --- Recording Logic ---
-        // (Largely unchanged, but with added console logs and checks)
-        function startRecording() {
-            console.log("Attempting start recording...");
-
-            if (!renderer || !renderer.domElement) {
-                showMessage('Error: Renderer not ready.', true);
-                console.error("startRecording failed: Renderer or canvas element missing.");
-                return;
-            }
-            if (!window.MediaRecorder) {
-                showMessage('Error: MediaRecorder API not supported in this browser.', true);
-                 console.error("startRecording failed: MediaRecorder not supported.");
-                return;
-            }
-
-            const canvas = renderer.domElement;
-            if (canvas.width === 0 || canvas.height === 0) {
-                showMessage('Error: Canvas dimensions are zero. Cannot record.', true);
-                 console.error("startRecording failed: Canvas size is zero.");
-                return;
-            }
-
-            const selectedFormat = videoFormatSelect.value;
-            let options = { mimeType: selectedFormat };
-            let fileExtension = selectedFormat.includes('mp4') ? 'mp4' : 'webm';
-
-            console.log(`Attempting to record with format: ${options.mimeType}`);
-
-            // Double-check support before creating MediaRecorder
-            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                const fallbackFormat = 'video/webm; codecs=vp8'; // A common fallback
-                showMessage(`Warning: ${options.mimeType} not supported. Trying ${fallbackFormat}.`, false); // Non-error message for fallback
-                 console.warn(`${options.mimeType} not supported, falling back to ${fallbackFormat}`);
-                options.mimeType = fallbackFormat;
-                fileExtension = 'webm';
-
-                // Check fallback support
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    showMessage(`Error: Fallback format ${options.mimeType} also not supported. Cannot record.`, true);
-                    console.error(`Fallback format ${options.mimeType} also not supported.`);
-                    return; // Stop if even fallback fails
-                }
-            }
-
-            try {
-                // Get stream from canvas (target 30fps)
-                const stream = canvas.captureStream(30);
-                 if (!stream) {
-                     throw new Error("Canvas captureStream returned null.");
-                 }
-                 console.log("Canvas stream captured:", stream);
-
-                 // Add video track options if needed (e.g., bitrate)
-                 // options.videoBitsPerSecond = 2500000; // Example: 2.5 Mbps
-
-                 console.log("Creating MediaRecorder with options:", options);
-                 mediaRecorder = new MediaRecorder(stream, options);
-
-            } catch (e) {
-                showMessage(`Error creating MediaRecorder: ${e.message}. Try a different format (e.g., WebM).`, true);
-                console.error("MediaRecorder creation failed:", e);
-                // Clean up UI state if creation fails
-                startRecordBtn.disabled = false;
-                stopRecordBtn.disabled = true;
-                startRecordBtn.classList.remove('btn-disabled');
-                stopRecordBtn.classList.add('btn-disabled');
-                videoFormatSelect.disabled = false;
-                recordingIndicator.style.display = 'none';
-                return;
-            }
-
-            // Reset chunks and setup event handlers
-            recordedChunks = [];
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data && event.data.size > 0) {
-                    recordedChunks.push(event.data);
-                    // console.log(`Data available: ${event.data.size} bytes`);
-                } else {
-                     // console.log("Data available event with no data.");
-                 }
-            };
-
-            mediaRecorder.onstop = () => {
-                console.log(`Recording stopped. Total chunks: ${recordedChunks.length}`);
-                if (recordedChunks.length === 0) {
-                    console.warn("Recording stopped, but no data chunks were received. Check stream/encoder.");
-                    showMessage("Recording failed: No video data was captured.", true);
-                     // Reset UI fully on failure
-                     startRecordBtn.disabled = false;
-                     stopRecordBtn.disabled = true;
-                     startRecordBtn.classList.remove('btn-disabled');
-                     stopRecordBtn.classList.add('btn-disabled');
-                     videoFormatSelect.disabled = false;
-                     recordingIndicator.style.display = 'none';
-                     downloadLink.classList.add('hidden'); // Ensure download link is hidden
-                     downloadLink.href = '#'; // Reset href
-                     // Clean up stream tracks manually if stop was unexpected?
-                     try {
-                        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                        console.log("Stream tracks stopped on empty recording stop.");
-                     } catch (trackError) {
-                        console.error("Error stopping stream tracks on empty recording:", trackError);
-                     }
-                     return; // Don't proceed to Blob creation
-                }
-
-                const blob = new Blob(recordedChunks, { type: options.mimeType });
-                const url = URL.createObjectURL(blob);
-
-                // Setup download link
-                downloadLink.href = url;
-                const now = new Date();
-                const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-                downloadLink.download = `futuristic_animation_${currentMovement}_${currentShapeType}_${timestamp}.${fileExtension}`;
-
-                // Update UI
-                downloadLink.classList.remove('hidden');
-                downloadLink.classList.add('inline-flex'); // Ensure it's displayed correctly
-                startRecordBtn.disabled = false;
-                stopRecordBtn.disabled = true;
-                startRecordBtn.classList.remove('btn-disabled');
-                stopRecordBtn.classList.add('btn-disabled');
-                videoFormatSelect.disabled = false; // Re-enable format selection
-                recordingIndicator.style.display = 'none';
-
-                showMessage('Recording stopped. Click Download Video to save.');
-                console.log(`Blob created: ${blob.size} bytes, type: ${blob.type}. URL: ${url}`);
-
-                // Stop the stream tracks *after* processing is done
-                 try {
-                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                    console.log("Stream tracks stopped successfully after recording.");
-                 } catch (trackError) {
-                    console.error("Error stopping stream tracks after recording:", trackError);
-                 }
-            };
-
-            mediaRecorder.onerror = (event) => {
-                const errorMessage = event.error?.message || 'Unknown recording error';
-                showMessage(`Recording error: ${errorMessage}. Try a different format (like WebM).`, true);
-                console.error("MediaRecorder error:", event.error);
-                // Attempt to stop cleanly, which might trigger onstop with empty data or fail
-                stopRecording(); // Call stop to attempt cleanup and UI reset
-            };
-
-            // Start recording (e.g., record in 1-second chunks, or let browser decide)
-            mediaRecorder.start(); // Interval optional: mediaRecorder.start(1000);
-            console.log(`MediaRecorder started successfully. State: ${mediaRecorder.state}`);
-
-            // Update UI for recording state
-            startRecordBtn.disabled = true;
-            stopRecordBtn.disabled = false;
-            startRecordBtn.classList.add('btn-disabled');
-            stopRecordBtn.classList.remove('btn-disabled');
-            videoFormatSelect.disabled = true; // Disable format change during recording
-            downloadLink.classList.add('hidden'); // Hide previous download link
-            downloadLink.href = '#'; // Reset href
-            recordingIndicator.style.display = 'block'; // Show indicator
-
-            showMessage(`Recording started (${options.mimeType})...`);
-        }
-
-        function stopRecording() {
-             console.log("Stop recording button clicked.");
-            // Check if recorder exists and is actually recording
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                try {
-                    mediaRecorder.stop(); // This will trigger the 'onstop' event handler asynchronously
-                    console.log("mediaRecorder.stop() called. Waiting for onstop event...");
-                    // Note: Stream tracks are stopped in the 'onstop' handler after blob creation
-                } catch (e) {
-                    console.error("Error calling mediaRecorder.stop():", e);
-                    // Force UI reset even if stop fails
-                    startRecordBtn.disabled = false;
-                    stopRecordBtn.disabled = true;
-                    startRecordBtn.classList.remove('btn-disabled');
-                    stopRecordBtn.classList.add('btn-disabled');
-                    videoFormatSelect.disabled = false;
-                    recordingIndicator.style.display = 'none';
-                    showMessage("Error stopping recording. Please refresh if issues persist.", true);
-                }
-            } else {
-                console.warn("Stop recording called, but recorder was not active or ready. State:", mediaRecorder?.state);
-                 // Ensure UI is reset if stop is called inappropriately
-                 startRecordBtn.disabled = false;
-                 stopRecordBtn.disabled = true;
-                 startRecordBtn.classList.remove('btn-disabled');
-                 stopRecordBtn.classList.add('btn-disabled');
-                 videoFormatSelect.disabled = false;
-                 recordingIndicator.style.display = 'none';
-            }
-        }
-
-        // --- Utility Functions ---
-        function showMessage(message, isError = false, duration = null) {
-            messageBox.textContent = message;
-            messageBox.style.backgroundColor = isError ? 'rgba(220, 38, 38, 0.9)' : 'rgba(0, 0, 0, 0.8)'; // More opaque error
-            messageBox.style.display = 'block';
-            // Clear previous timeout if any
-             if (showMessage.timeoutId) {
-                 clearTimeout(showMessage.timeoutId);
-             }
-             // Determine duration
-             const displayDuration = duration !== null ? duration : (isError ? 6000 : 4000);
-             // Set new timeout
-             showMessage.timeoutId = setTimeout(() => {
-                 messageBox.style.display = 'none';
-                 showMessage.timeoutId = null; // Clear the stored ID
-             }, displayDuration);
-        }
-        showMessage.timeoutId = null; // Initialize timeout storage
-
-
-        // --- Run ---
+        });
+
+        // Debounce resize drawing to avoid excessive redraws
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                 updateState(); // Update state in case percentages change meaning
+                 drawArt();
+            }, 150); // Wait 150ms after resize stops
+        });
+
+
+        // --- Initial Setup ---
+        updateState(); // Load initial values from controls
+        // Use window.onload to ensure layout is stable and container has dimensions
         window.onload = () => {
-            console.log("window.onload triggered.");
-            // Ensure DOM is fully loaded before starting asset loading & init
-             if (document.readyState === 'complete') {
-                 loadAssets();
-             } else {
-                 window.addEventListener('DOMContentLoaded', loadAssets);
-             }
+             drawArt();
         };
 
-        console.log("Script end.");
-
     </script>
+
 </body>
 </html>
