@@ -1,713 +1,577 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bokeh Blur Art</title>
-  <style>
-    /* --- Professional, mobile-friendly styling --- */
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
-      color: #333;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 10px;
-    }
-    canvas {
-      width: 100%;
-      height: auto;
-      border: 1px solid #ccc;
-      display: block;
-      margin-bottom: 10px;
-    }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      margin-bottom: 10px;
-    }
-    button, input[type="range"], input[type="color"] {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: #fff;
-      cursor: pointer;
-    }
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    button:hover:not(:disabled) {
-      background: #eee;
-    }
-    .hidden {
-      display: none;
-    }
-    .status {
-      text-align: center;
-      margin: 5px 0;
-    }
-    @media (max-width: 600px) {
-      .controls {
-        flex-direction: column;
-      }
-    }
-  </style>
-  <!-- ffmpeg.js for optional MP4 conversion (works in modern browsers only) -->
-  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wavy Text Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+    <script>
+        // Configure gif.js worker path
+        window.GIF_WORKER_PATH = 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js';
+    </script>
+    <style>
+        /* Apply Poppins font globally */
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        /* Style range input tracks and thumbs */
+        input[type=range] {
+            -webkit-appearance: none; appearance: none; width: 100%; height: 8px;
+            background: #d1d5db; /* gray-300 */ outline: none; opacity: 0.7;
+            -webkit-transition: .2s; transition: opacity .2s; border-radius: 4px; cursor: pointer;
+        }
+        input[type=range]:hover { opacity: 1; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 20px; height: 20px;
+            background: #3b82f6; /* blue-500 */ cursor: pointer; border-radius: 50%;
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 20px; height: 20px; background: #3b82f6; /* blue-500 */
+            cursor: pointer; border-radius: 50%; border: none;
+        }
+        /* Style color inputs */
+        input[type=color] {
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            width: 32px; height: 32px; background-color: transparent; /* Smaller color pickers */
+            border: 1px solid #d1d5db; /* gray-300 */ border-radius: 4px; cursor: pointer; padding: 0;
+            vertical-align: middle; /* Align better with text/checkboxes */
+        }
+        input[type=color]::-webkit-color-swatch-wrapper { padding: 0; border-radius: 4px; }
+        input[type=color]::-webkit-color-swatch { border: none; border-radius: 3px; }
+        input[type=color]::-moz-color-swatch { border: none; border-radius: 3px; }
+
+        /* Basic canvas styling */
+        canvas {
+            display: block; border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 8px; width: 100%; height: auto;
+        }
+        /* Button base styles */
+        .btn {
+            padding: 0.5rem 1rem; border-radius: 0.375rem; /* rounded-md */
+            font-weight: 600; /* font-semibold */ text-align: center; cursor: pointer;
+            transition: background-color 0.2s; border: none;
+        }
+        .btn-blue { background-color: #3b82f6; /* blue-500 */ color: white; }
+        .btn-blue:hover { background-color: #2563eb; /* blue-600 */ }
+        .btn-green { background-color: #10b981; /* green-500 */ color: white; }
+        .btn-green:hover { background-color: #059669; /* green-600 */ }
+        .btn-red { background-color: #ef4444; /* red-500 */ color: white; }
+        .btn-red:hover { background-color: #dc2626; /* red-600 */ }
+        .btn:disabled { background-color: #9ca3af; /* gray-400 */ cursor: not-allowed; }
+
+        /* Loading indicator */
+        #loadingIndicator { display: none; } /* Hidden by default */
+
+        /* Styling for gradient controls */
+        .gradient-controls { display: none; /* Hidden by default */ }
+        .gradient-controls.active { display: inline-flex; /* Show when active */ }
+
+    </style>
 </head>
-<body>
-  <div class="container">
-    <canvas id="artCanvas"></canvas>
-    <div class="controls">
-      <button id="playBtn">Play</button>
-      <button id="pauseBtn" disabled>Pause</button>
-      <button id="regenerateBtn">Regenerate</button>
-      <button id="downloadPngBtn">Download PNG</button>
-      <button id="downloadWebmBtn" disabled>Download WEBM</button>
-      <button id="downloadMp4Btn" disabled>Download MP4</button>
-      <button id="startRecordBtn">Start Recording</button>
-      <button id="stopRecordBtn" disabled>Stop Recording</button>
+<body class="bg-gray-100 p-4 md:p-8 font-['Poppins']">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">Wavy Text Generator</h1>
+
+        <div class="mb-4">
+            <label for="textInput" class="block text-sm font-medium text-gray-700 mb-1">Enter Text (one line per wave):</label>
+            <textarea id="textInput" rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">Gentle Flow of Lies
+More Dynamic Waves
+Gradient Text Example</textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4 mb-6">
+            <div>
+                <label for="fontSize" class="block text-sm font-medium text-gray-700">Font Size: <span id="fontSizeValue" class="font-semibold">30</span>px</label>
+                <input type="range" id="fontSize" min="10" max="100" value="30" class="w-full">
+            </div>
+             <div>
+                <label for="amplitude1" class="block text-sm font-medium text-gray-700">Wave 1 Amp: <span id="amplitude1Value" class="font-semibold">20</span></label>
+                <input type="range" id="amplitude1" min="0" max="100" value="20" class="w-full">
+            </div>
+            <div>
+                <label for="frequency1" class="block text-sm font-medium text-gray-700">Wave 1 Freq: <span id="frequency1Value" class="font-semibold">0.02</span></label>
+                <input type="range" id="frequency1" min="0.001" max="0.1" step="0.001" value="0.02" class="w-full">
+            </div>
+             <div>
+                <label for="spacing" class="block text-sm font-medium text-gray-700">Char Spacing: <span id="spacingValue" class="font-semibold">5</span>px</label>
+                <input type="range" id="spacing" min="0" max="30" value="5" class="w-full">
+            </div>
+
+            <div></div> <div>
+                <label for="amplitude2" class="block text-sm font-medium text-gray-700">Wave 2 Amp: <span id="amplitude2Value" class="font-semibold">15</span></label>
+                <input type="range" id="amplitude2" min="0" max="100" value="15" class="w-full">
+            </div>
+            <div>
+                <label for="frequency2" class="block text-sm font-medium text-gray-700">Wave 2 Freq: <span id="frequency2Value" class="font-semibold">0.05</span></label>
+                <input type="range" id="frequency2" min="0.001" max="0.1" step="0.001" value="0.05" class="w-full">
+            </div>
+             <div>
+                <label for="lineSpacing" class="block text-sm font-medium text-gray-700">Line Spacing: <span id="lineSpacingValue" class="font-semibold">1.5</span>x</label>
+                <input type="range" id="lineSpacing" min="0.5" max="3" step="0.1" value="1.5" class="w-full">
+            </div>
+
+             <div></div> <div>
+                <label for="amplitude3" class="block text-sm font-medium text-gray-700">Wave 3 Amp: <span id="amplitude3Value" class="font-semibold">10</span></label>
+                <input type="range" id="amplitude3" min="0" max="100" value="10" class="w-full">
+            </div>
+            <div>
+                <label for="frequency3" class="block text-sm font-medium text-gray-700">Wave 3 Freq: <span id="frequency3Value" class="font-semibold">0.08</span></label>
+                <input type="range" id="frequency3" min="0.001" max="0.1" step="0.001" value="0.08" class="w-full">
+            </div>
+             <div>
+                <label for="speed" class="block text-sm font-medium text-gray-700">Anim Speed: <span id="speedValue" class="font-semibold">0.05</span></label>
+                <input type="range" id="speed" min="0" max="0.2" step="0.005" value="0.05" class="w-full">
+            </div>
+
+            <div></div> <div></div> <div></div> <div class="space-y-1">
+                <label class="block text-sm font-medium text-gray-700">Background:</label>
+                <div class="flex items-center space-x-2">
+                    <input type="color" id="bgColor1" value="#f9fafb">
+                    <input type="checkbox" id="bgGradientToggle" class="form-checkbox h-4 w-4 text-blue-600">
+                    <label for="bgGradientToggle" class="text-xs text-gray-600">Gradient</label>
+                </div>
+                 <div id="bgGradientControls" class="gradient-controls items-center space-x-1">
+                     <span class="text-xs text-gray-500">End:</span>
+                     <input type="color" id="bgColor2" value="#d1d5db">
+                 </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+             <label class="block text-sm font-medium text-gray-700 mb-1">Text Colors (L-R Gradient):</label>
+             <div id="lineColorsContainer" class="space-y-2">
+                 </div>
+        </div>
+
+        <canvas id="textCanvas" class="w-full rounded-md border border-gray-300 mb-4"></canvas>
+
+        <div class="flex flex-wrap justify-center items-center gap-4">
+            <button id="downloadPngBtn" class="btn btn-blue">Download PNG</button>
+            <button id="recordGifBtn" class="btn btn-green">Record GIF (3s)</button>
+            <button id="stopGifBtn" class="btn btn-red" style="display: none;">Stop Recording</button>
+             <span id="loadingIndicator" class="text-sm text-gray-600 font-medium">Processing GIF...</span>
+        </div>
     </div>
 
-    <!-- Sliders for circle count, blur, size, etc. -->
-    <div class="controls">
-      <label>Intensity:
-        <input type="range" id="intensity" min="10" max="300" value="80">
-        <span id="intensityValue">80</span>
-      </label>
-      <label>Blur:
-        <input type="range" id="blur" min="0" max="100" value="60">
-        <span id="blurValue">60</span>
-      </label>
-      <label>Min Radius:
-        <input type="range" id="minRadius" min="1" max="60" value="10">
-        <span id="minRadiusValue">10</span>%
-      </label>
-      <label>Max Radius:
-        <input type="range" id="maxRadius" min="1" max="80" value="60">
-        <span id="maxRadiusValue">60</span>%
-      </label>
-      <label>Opacity:
-        <input type="range" id="opacity" min="0.1" max="1" step="0.01" value="0.9">
-        <span id="opacityValue">0.90</span>
-      </label>
-      <label>Speed:
-        <input type="range" id="speed" min="0.1" max="5" step="0.1" value="1.0">
-        <span id="speedValue">1.0</span>
-      </label>
-    </div>
+    <script>
+        // --- DOM Elements ---
+        const canvas = document.getElementById('textCanvas');
+        const ctx = canvas.getContext('2d');
+        const textInput = document.getElementById('textInput');
+        // Sliders
+        const fontSizeInput = document.getElementById('fontSize');
+        const amplitude1Input = document.getElementById('amplitude1');
+        const frequency1Input = document.getElementById('frequency1');
+        const amplitude2Input = document.getElementById('amplitude2');
+        const frequency2Input = document.getElementById('frequency2');
+        const amplitude3Input = document.getElementById('amplitude3');
+        const frequency3Input = document.getElementById('frequency3');
+        const speedInput = document.getElementById('speed');
+        const spacingInput = document.getElementById('spacing');
+        const lineSpacingInput = document.getElementById('lineSpacing');
+        // Background Color
+        const bgColor1Input = document.getElementById('bgColor1');
+        const bgGradientToggle = document.getElementById('bgGradientToggle');
+        const bgGradientControls = document.getElementById('bgGradientControls');
+        const bgColor2Input = document.getElementById('bgColor2');
+        // Line Colors
+        const lineColorsContainer = document.getElementById('lineColorsContainer');
+        // Buttons & Indicator
+        const downloadPngBtn = document.getElementById('downloadPngBtn');
+        const recordGifBtn = document.getElementById('recordGifBtn');
+        const stopGifBtn = document.getElementById('stopGifBtn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
 
-    <!-- Color pickers for circles -->
-    <div class="controls">
-      <div>
-        <label>Circle Color 1:
-          <input type="color" class="circle-color" value="#ff5599">
-        </label>
-        <label>Circle Color 2:
-          <input type="color" class="circle-color" value="#ff55ff">
-        </label>
-        <label>Circle Color 3:
-          <input type="color" class="circle-color" value="#ffaa33">
-        </label>
-      </div>
-    </div>
+        // Value display spans
+        const fontSizeValueSpan = document.getElementById('fontSizeValue');
+        const amplitude1ValueSpan = document.getElementById('amplitude1Value');
+        const frequency1ValueSpan = document.getElementById('frequency1Value');
+        const amplitude2ValueSpan = document.getElementById('amplitude2Value');
+        const frequency2ValueSpan = document.getElementById('frequency2Value');
+        const amplitude3ValueSpan = document.getElementById('amplitude3Value');
+        const frequency3ValueSpan = document.getElementById('frequency3Value');
+        const speedValueSpan = document.getElementById('speedValue');
+        const spacingValueSpan = document.getElementById('spacingValue');
+        const lineSpacingValueSpan = document.getElementById('lineSpacingValue');
 
-    <!-- Background type + color pickers -->
-    <div class="controls">
-      <label><input type="radio" name="backgroundType" value="solid"> Solid Background</label>
-      <label><input type="radio" name="backgroundType" value="linear"> Linear Gradient</label>
-      <label><input type="radio" name="backgroundType" value="radial" checked> Radial Gradient</label>
-    </div>
-    <div id="solidColorOption" class="controls hidden">
-      <label>Background Color:
-        <input type="color" id="bgColor1" value="#222222">
-      </label>
-    </div>
-    <div id="gradientOptions" class="controls">
-      <label>Gradient Color 1:
-        <input type="color" id="bgColorGradient1" value="#ff77aa">
-      </label>
-      <label>Gradient Color 2:
-        <input type="color" id="bgColorGradient2" value="#ffcc66">
-      </label>
-    </div>
+        // --- State Variables ---
+        let animationFrameId = null;
+        let time = 0; // Time variable for animation phase shift
+        // Store line color info as objects
+        let lineStyles = [
+            { mode: 'solid', color1: '#1f2937', color2: '#1f2937' }, // Default Line 1 (dark gray)
+            { mode: 'solid', color1: '#dc2626', color2: '#dc2626' }, // Default Line 2 (red)
+            { mode: 'gradient', color1: '#059669', color2: '#3b82f6' }, // Default Line 3 (green-blue gradient)
+            { mode: 'solid', color1: '#2563eb', color2: '#2563eb' }  // Default Line 4 (blue)
+        ];
+        let bgStyle = { mode: 'solid', color1: '#f9fafb', color2: '#d1d5db' }; // Background state
+        let textLines = [];
+        let gifRecorder = null;
+        let isRecording = false;
+        const GIF_DURATION = 3000; // 3 seconds recording time
+        const GIF_FRAME_DELAY = 50; // Delay between frames in ms (approx 20 FPS)
+        let recordingStartTime = 0;
 
-    <!-- Status indicators -->
-    <div id="statusMessage" class="status"></div>
-    <div id="recordingIndicator" class="status hidden">Recording...</div>
-  </div>
+        // --- Core Functions ---
 
-  <script>
-    // --- DOM Elements ---
-    const canvas = document.getElementById('artCanvas');
-    const ctx = canvas.getContext('2d');
+        // Update UI for line color pickers based on text input
+        function updateLineColorPickers() {
+            lineColorsContainer.innerHTML = ''; // Clear existing pickers
+            textLines = textInput.value.split('\n').filter(line => line.trim() !== ''); // Get non-empty lines
 
-    // Buttons
-    const playBtn = document.getElementById('playBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const regenerateBtn = document.getElementById('regenerateBtn');
-    const downloadPngBtn = document.getElementById('downloadPngBtn');
-    const downloadWebmBtn = document.getElementById('downloadWebmBtn');
-    const downloadMp4Btn = document.getElementById('downloadMp4Btn');
-    const startRecordBtn = document.getElementById('startRecordBtn');
-    const stopRecordBtn = document.getElementById('stopRecordBtn');
-
-    // Sliders & Value Displays
-    const intensitySlider = document.getElementById('intensity');
-    const intensityValue = document.getElementById('intensityValue');
-    const blurSlider = document.getElementById('blur');
-    const blurValue = document.getElementById('blurValue');
-    const minRadiusSlider = document.getElementById('minRadius');
-    const minRadiusValue = document.getElementById('minRadiusValue');
-    const maxRadiusSlider = document.getElementById('maxRadius');
-    const maxRadiusValue = document.getElementById('maxRadiusValue');
-    const opacitySlider = document.getElementById('opacity');
-    const opacityValue = document.getElementById('opacityValue');
-    const speedSlider = document.getElementById('speed');
-    const speedValue = document.getElementById('speedValue');
-
-    // Circle Color Inputs
-    const circleColorInputs = Array.from(document.querySelectorAll('.circle-color'));
-
-    // Background Controls
-    const backgroundTypeRadios = Array.from(document.querySelectorAll('input[name="backgroundType"]'));
-    const solidColorOptionDiv = document.getElementById('solidColorOption');
-    const gradientOptionsDiv = document.getElementById('gradientOptions');
-    const bgColor1Input = document.getElementById('bgColor1');
-    const bgColorGradient1Input = document.getElementById('bgColorGradient1');
-    const bgColorGradient2Input = document.getElementById('bgColorGradient2');
-
-    // Status/Indicators
-    const statusMessage = document.getElementById('statusMessage');
-    const recordingIndicator = document.getElementById('recordingIndicator');
-
-    // --- State Variables ---
-    let baseCircleColors = [];
-    let intensity = 80;
-    let blurAmount = 60;
-    let minRadiusPercent = 10;
-    let maxRadiusPercent = 60;
-    let maxOpacity = 0.9;
-    let speedMultiplier = 1.0;
-    let circles = [];
-    let animationFrameId = null;
-    let isPaused = false;
-    let canvasWidth = 0;
-    let canvasHeight = 0;
-    let statusTimeout = null;
-
-    // Background state
-    let backgroundType = 'radial';
-    let backgroundColor1 = '#ff77aa';
-    let backgroundColor2 = '#ffcc66';
-
-    // --- Media Recorder State ---
-    let mediaRecorder = null;
-    let recordedChunks = [];
-    let isRecording = false;
-    let lastRecordingBlob = null;
-    const MimeType = 'video/webm;codecs=vp9';
-
-    // --- Helper Functions ---
-    function getRandomFloat(min, max) {
-      return Math.random() * (max - min) + min;
-    }
-
-    function hexToRgba(hex, alpha) {
-      let r = 0, g = 0, b = 0;
-      if (hex.length === 4) {
-        r = parseInt(hex[1] + hex[1], 16);
-        g = parseInt(hex[2] + hex[2], 16);
-        b = parseInt(hex[3] + hex[3], 16);
-      } else if (hex.length === 7) {
-        r = parseInt(hex[1] + hex[2], 16);
-        g = parseInt(hex[3] + hex[4], 16);
-        b = parseInt(hex[5] + hex[6], 16);
-      }
-      return `rgba(${r},${g},${b},${alpha})`;
-    }
-
-    function showStatus(message, duration = 3000) {
-      clearTimeout(statusTimeout);
-      statusMessage.textContent = message;
-      if (duration > 0) {
-        statusTimeout = setTimeout(() => {
-          statusMessage.textContent = '';
-        }, duration);
-      }
-    }
-
-    // --- Update State from UI ---
-    function updateStateFromUI() {
-      baseCircleColors = circleColorInputs.map(input => input.value);
-      intensity = parseInt(intensitySlider.value, 10);
-      blurAmount = parseInt(blurSlider.value, 10);
-      minRadiusPercent = parseInt(minRadiusSlider.value, 10);
-      maxRadiusPercent = parseInt(maxRadiusSlider.value, 10);
-      maxOpacity = parseFloat(opacitySlider.value);
-      speedMultiplier = parseFloat(speedSlider.value);
-
-      const selectedRadio = backgroundTypeRadios.find(radio => radio.checked);
-      backgroundType = selectedRadio ? selectedRadio.value : 'solid';
-
-      if (backgroundType === 'solid') {
-        backgroundColor1 = bgColor1Input.value;
-      } else {
-        backgroundColor1 = bgColorGradient1Input.value;
-        backgroundColor2 = bgColorGradient2Input.value;
-      }
-
-      intensityValue.textContent = intensity;
-      blurValue.textContent = blurAmount;
-      minRadiusValue.textContent = minRadiusPercent;
-      maxRadiusValue.textContent = maxRadiusPercent;
-      opacityValue.textContent = maxOpacity.toFixed(2);
-      speedValue.textContent = speedMultiplier.toFixed(1);
-
-      if (minRadiusPercent > maxRadiusPercent) {
-        minRadiusSlider.value = maxRadiusPercent;
-        minRadiusPercent = maxRadiusPercent;
-        minRadiusValue.textContent = minRadiusPercent;
-      }
-
-      solidColorOptionDiv.classList.toggle('hidden', backgroundType !== 'solid');
-      gradientOptionsDiv.classList.toggle('hidden', backgroundType === 'solid');
-    }
-
-    // --- Canvas and Circle Initialization ---
-    function resizeCanvas() {
-      const container = canvas.parentElement;
-      canvasWidth = container.clientWidth;
-      // Keep a decent aspect ratio
-      canvasHeight = Math.floor(canvasWidth * 0.6);
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
-    }
-
-    function initializeCircles() {
-      circles = [];
-      const baseDimension = Math.min(canvasWidth, canvasHeight);
-      const minRadiusPx = (minRadiusPercent / 100) * baseDimension;
-      const maxRadiusPx = (maxRadiusPercent / 100) * baseDimension;
-      const baseSpeed = baseDimension * 0.001;
-      const finalMinRadiusPx = Math.min(minRadiusPx, maxRadiusPx);
-      const finalMaxRadiusPx = Math.max(minRadiusPx, maxRadiusPx);
-
-      for (let i = 0; i < intensity; i++) {
-        const radius = getRandomFloat(finalMinRadiusPx, finalMaxRadiusPx);
-        const angle = getRandomFloat(0, Math.PI * 2);
-        const currentSpeed = baseSpeed * speedMultiplier;
-
-        circles.push({
-          x: getRandomFloat(radius, canvasWidth - radius),
-          y: getRandomFloat(radius, canvasHeight - radius),
-          radius,
-          color: baseCircleColors[Math.floor(Math.random() * baseCircleColors.length)],
-          vx: Math.cos(angle) * currentSpeed,
-          vy: Math.sin(angle) * currentSpeed,
-          opacity: getRandomFloat(0.1, maxOpacity)
-        });
-      }
-      showStatus("");
-    }
-
-    // --- Drawing Functions ---
-    function drawBackground() {
-      ctx.filter = 'none';
-      ctx.globalCompositeOperation = 'source-over';
-
-      if (backgroundType === 'solid') {
-        ctx.fillStyle = backgroundColor1;
-      } else if (backgroundType === 'linear') {
-        const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-        gradient.addColorStop(0, backgroundColor1);
-        gradient.addColorStop(1, backgroundColor2);
-        ctx.fillStyle = gradient;
-      } else if (backgroundType === 'radial') {
-        const centerX = canvasWidth / 2;
-        const centerY = canvasHeight / 2;
-        const outerRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, outerRadius);
-        gradient.addColorStop(0, backgroundColor1);
-        gradient.addColorStop(1, backgroundColor2);
-        ctx.fillStyle = gradient;
-      }
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    }
-
-    function drawCircles() {
-      ctx.save();
-      // Use "lighter" so overlapping circles glow more brightly
-      ctx.globalCompositeOperation = 'lighter';
-
-      // If the browser supports canvas filters, apply blur to each circle
-      if ('filter' in ctx) {
-        ctx.filter = `blur(${blurAmount}px)`;
-        circles.forEach(circle => {
-          const gradient = ctx.createRadialGradient(
-            circle.x, circle.y, 0,
-            circle.x, circle.y, circle.radius
-          );
-          gradient.addColorStop(0, hexToRgba(circle.color, circle.opacity));
-          gradient.addColorStop(1, hexToRgba(circle.color, 0));
-
-          ctx.beginPath();
-          ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
-          ctx.fillStyle = gradient;
-          ctx.fill();
-        });
-      } else {
-        // Fallback for older browsers: shadowBlur
-        circles.forEach(circle => {
-          ctx.save();
-          ctx.shadowBlur = blurAmount;
-          ctx.shadowColor = hexToRgba(circle.color, circle.opacity);
-
-          const gradient = ctx.createRadialGradient(
-            circle.x, circle.y, 0,
-            circle.x, circle.y, circle.radius
-          );
-          gradient.addColorStop(0, hexToRgba(circle.color, circle.opacity));
-          gradient.addColorStop(1, hexToRgba(circle.color, 0));
-
-          ctx.beginPath();
-          ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
-          ctx.fillStyle = gradient;
-          ctx.fill();
-          ctx.restore();
-        });
-      }
-
-      ctx.restore();
-    }
-
-    function drawFrame() {
-      drawBackground();
-      drawCircles();
-    }
-
-    // --- Animation Loop ---
-    function updateCirclePositions() {
-      circles.forEach(circle => {
-        circle.x += circle.vx;
-        circle.y += circle.vy;
-        // Bounce off edges
-        if (circle.x - circle.radius < 0 || circle.x + circle.radius > canvasWidth) {
-          circle.vx *= -1;
-          circle.x = Math.max(circle.radius, Math.min(canvasWidth - circle.radius, circle.x));
-        }
-        if (circle.y - circle.radius < 0 || circle.y + circle.radius > canvasHeight) {
-          circle.vy *= -1;
-          circle.y = Math.max(circle.radius, Math.min(canvasHeight - circle.radius, circle.y));
-        }
-      });
-    }
-
-    function animate() {
-      if (isPaused) return;
-      updateCirclePositions();
-      drawFrame();
-      animationFrameId = requestAnimationFrame(animate);
-    }
-
-    // --- Control Functions ---
-    function playAnimation() {
-      if (animationFrameId === null || isPaused) {
-        isPaused = false;
-        playBtn.disabled = true;
-        pauseBtn.disabled = false;
-        startRecordBtn.disabled = isRecording;
-        downloadWebmBtn.disabled = false;
-        downloadMp4Btn.disabled = false;
-        showStatus("");
-        animate();
-      }
-    }
-
-    function pauseAnimation() {
-      if (animationFrameId !== null && !isPaused) {
-        isPaused = true;
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-        playBtn.disabled = false;
-        pauseBtn.disabled = true;
-        // If paused, disallow starting a new recording
-        startRecordBtn.disabled = true;
-        stopRecordBtn.disabled = !isRecording;
-        downloadWebmBtn.disabled = true;
-        downloadMp4Btn.disabled = true;
-        showStatus("Paused");
-      }
-    }
-
-    function regenerateArt() {
-      pauseAnimation();
-      updateStateFromUI();
-      initializeCircles();
-      drawFrame();
-      playBtn.disabled = false;
-      pauseBtn.disabled = true;
-      startRecordBtn.disabled = true;
-      stopRecordBtn.disabled = true;
-      downloadWebmBtn.disabled = true;
-      downloadMp4Btn.disabled = true;
-      isPaused = true;
-      if (isRecording) {
-        stopRecording();
-        showStatus("Recording stopped. New art generated.");
-      } else {
-        showStatus("New art generated. Press Play.");
-      }
-    }
-
-    // --- Media Recorder Functions ---
-    function handleDataAvailable(event) {
-      if (event.data && event.data.size > 0) {
-        recordedChunks.push(event.data);
-      }
-    }
-    async function handleStopRecording() {
-      isRecording = false;
-      recordingIndicator.classList.add('hidden');
-      lastRecordingBlob = new Blob(recordedChunks, { type: MimeType });
-      recordedChunks = [];
-      mediaRecorder = null;
-
-      startRecordBtn.disabled = isPaused;
-      stopRecordBtn.disabled = true;
-      regenerateBtn.disabled = false;
-      downloadPngBtn.disabled = false;
-      downloadWebmBtn.disabled = isPaused;
-      downloadMp4Btn.disabled = isPaused;
-      playBtn.disabled = isPaused;
-      pauseBtn.disabled = !isPaused;
-      showStatus('Recording complete! Choose a download option.');
-    }
-    function startRecording() {
-      if (!window.MediaRecorder || !MediaRecorder.isTypeSupported(MimeType)) {
-        showStatus(`Error: Recording (${MimeType}) not supported in this browser.`);
-        console.error('MediaRecorder API or MimeType not supported.');
-        return;
-      }
-      if (isRecording || isPaused) return;
-
-      isRecording = true;
-      recordedChunks = [];
-      recordingIndicator.classList.remove('hidden');
-      showStatus('Recording...', 0);
-
-      startRecordBtn.disabled = true;
-      stopRecordBtn.disabled = false;
-      regenerateBtn.disabled = true;
-      downloadPngBtn.disabled = true;
-      downloadWebmBtn.disabled = true;
-      downloadMp4Btn.disabled = true;
-      playBtn.disabled = true;
-      pauseBtn.disabled = false;
-
-      try {
-        const stream = canvas.captureStream(30);
-        mediaRecorder = new MediaRecorder(stream, { mimeType: MimeType });
-        mediaRecorder.ondataavailable = handleDataAvailable;
-        mediaRecorder.onstop = handleStopRecording;
-        mediaRecorder.onerror = (event) => {
-          console.error('MediaRecorder error:', event.error);
-          showStatus(`Recording Error: ${event.error.name}`);
-          isRecording = false;
-          recordingIndicator.classList.add('hidden');
-          startRecordBtn.disabled = isPaused;
-          stopRecordBtn.disabled = true;
-          regenerateBtn.disabled = false;
-          downloadPngBtn.disabled = false;
-          downloadWebmBtn.disabled = isPaused;
-          downloadMp4Btn.disabled = isPaused;
-          playBtn.disabled = isPaused;
-          pauseBtn.disabled = !isPaused;
-        };
-        mediaRecorder.start();
-      } catch (error) {
-        console.error("Error starting MediaRecorder:", error);
-        showStatus(`Error: ${error.message}`);
-        isRecording = false;
-        recordingIndicator.classList.add('hidden');
-        startRecordBtn.disabled = isPaused;
-        stopRecordBtn.disabled = true;
-        regenerateBtn.disabled = false;
-        downloadPngBtn.disabled = false;
-        downloadWebmBtn.disabled = isPaused;
-        downloadMp4Btn.disabled = isPaused;
-        playBtn.disabled = isPaused;
-        pauseBtn.disabled = !isPaused;
-      }
-    }
-    function stopRecording() {
-      if (mediaRecorder && isRecording) {
-        mediaRecorder.stop();
-        showStatus('Stopping recording...');
-      }
-    }
-
-    // --- Download Handlers ---
-    downloadPngBtn.addEventListener('click', () => {
-      // Redraw final frame if paused
-      if (isPaused) drawFrame();
-      const link = document.createElement('a');
-      link.download = 'bokeh-art-frame.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      showStatus("PNG frame downloaded");
-    });
-    downloadWebmBtn.addEventListener('click', () => {
-      if (lastRecordingBlob) {
-        const url = URL.createObjectURL(lastRecordingBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'bokeh-art-animation.webm';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        showStatus("WEBM downloaded");
-      } else {
-        showStatus("No recording available.");
-      }
-    });
-    downloadMp4Btn.addEventListener('click', async () => {
-      if (lastRecordingBlob) {
-        showStatus("Converting to MP4, please wait...", 0);
-        const { createFFmpeg, fetchFile } = FFmpeg;
-        const ffmpeg = createFFmpeg({ log: true });
-        await ffmpeg.load();
-        ffmpeg.FS('writeFile', 'input.webm', await fetchFile(lastRecordingBlob));
-        await ffmpeg.run('-i', 'input.webm', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', 'output.mp4');
-        const data = ffmpeg.FS('readFile', 'output.mp4');
-        const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
-        const url = URL.createObjectURL(mp4Blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'bokeh-art-animation.mp4';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        showStatus("MP4 downloaded");
-      } else {
-        showStatus("No recording available.");
-      }
-    });
-
-    // --- Combined Event Listeners for Controls ---
-    const allControls = [
-      intensitySlider, blurSlider, minRadiusSlider, maxRadiusSlider, opacitySlider, speedSlider,
-      ...circleColorInputs, ...backgroundTypeRadios,
-      bgColor1Input, bgColorGradient1Input, bgColorGradient2Input
-    ];
-    allControls.forEach(input => {
-      input.addEventListener('input', (event) => {
-        const prevBgType = backgroundType;
-        updateStateFromUI();
-        const changedInput = event.target;
-
-        // If the user changed something that drastically alters the setup,
-        // regenerate the circles & background
-        const requiresRegen = [
-          intensitySlider, minRadiusSlider, maxRadiusSlider,
-          opacitySlider, bgColor1Input,
-          bgColorGradient1Input, bgColorGradient2Input,
-          ...circleColorInputs
-        ].includes(changedInput);
-
-        const backgroundTypeChanged = backgroundTypeRadios.includes(changedInput) && backgroundType !== prevBgType;
-
-        if (requiresRegen || backgroundTypeChanged) {
-          regenerateArt();
-        } else if (changedInput === speedSlider) {
-          // Adjust circle velocities on the fly
-          const baseDimension = Math.min(canvasWidth, canvasHeight);
-          const baseSpeed = baseDimension * 0.001;
-          circles.forEach(circle => {
-            const magnitude = Math.sqrt(circle.vx ** 2 + circle.vy ** 2);
-            const targetSpeed = baseSpeed * speedMultiplier;
-            if (magnitude > 0.0001) {
-              const scaleFactor = targetSpeed / magnitude;
-              circle.vx *= scaleFactor;
-              circle.vy *= scaleFactor;
-            } else {
-              const angle = getRandomFloat(0, Math.PI * 2);
-              circle.vx = Math.cos(angle) * targetSpeed;
-              circle.vy = Math.sin(angle) * targetSpeed;
+            // Ensure lineStyles array is long enough
+            while (lineStyles.length < textLines.length) {
+                 // Cycle through default styles or add a new solid gray
+                const defaultStyle = lineStyles[lineStyles.length % 4] || { mode: 'solid', color1: '#374151', color2: '#374151' };
+                lineStyles.push(JSON.parse(JSON.stringify(defaultStyle))); // Deep copy default
             }
-          });
-          showStatus("");
-        } else if (changedInput === blurSlider) {
-          // If paused, redraw immediately so we see the new blur
-          if (isPaused) drawFrame();
+             // Trim excess styles if text lines are removed
+            lineStyles.length = textLines.length;
+
+            textLines.forEach((line, index) => {
+                const style = lineStyles[index];
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex items-center space-x-2 text-sm';
+
+                const label = document.createElement('span');
+                label.className = 'text-xs font-medium text-gray-600 w-8'; // Fixed width label
+                label.textContent = `L${index + 1}:`;
+
+                const colorPicker1 = document.createElement('input');
+                colorPicker1.type = 'color';
+                colorPicker1.value = style.color1;
+                colorPicker1.dataset.lineIndex = index;
+                colorPicker1.dataset.colorIndex = 1;
+                colorPicker1.addEventListener('input', handleLineColorChange);
+
+                const gradientToggle = document.createElement('input');
+                gradientToggle.type = 'checkbox';
+                gradientToggle.checked = style.mode === 'gradient';
+                gradientToggle.className = 'form-checkbox h-4 w-4 text-blue-600';
+                gradientToggle.dataset.lineIndex = index;
+                gradientToggle.addEventListener('change', handleLineGradientToggle);
+
+                const gradientLabel = document.createElement('label');
+                gradientLabel.className = 'text-xs text-gray-600';
+                gradientLabel.textContent = 'Gradient';
+                 gradientLabel.htmlFor = gradientToggle.id = `lineGradToggle-${index}`; // Associate label
+
+                const gradientControls = document.createElement('div');
+                gradientControls.className = `gradient-controls items-center space-x-1 ml-1 ${style.mode === 'gradient' ? 'active' : ''}`;
+
+                const endLabel = document.createElement('span');
+                endLabel.className = 'text-xs text-gray-500';
+                endLabel.textContent = 'End:';
+
+                const colorPicker2 = document.createElement('input');
+                colorPicker2.type = 'color';
+                colorPicker2.value = style.color2;
+                colorPicker2.dataset.lineIndex = index;
+                colorPicker2.dataset.colorIndex = 2;
+                colorPicker2.addEventListener('input', handleLineColorChange);
+
+                gradientControls.appendChild(endLabel);
+                gradientControls.appendChild(colorPicker2);
+
+                wrapper.appendChild(label);
+                wrapper.appendChild(colorPicker1);
+                wrapper.appendChild(gradientToggle);
+                wrapper.appendChild(gradientLabel);
+                wrapper.appendChild(gradientControls);
+                lineColorsContainer.appendChild(wrapper);
+            });
         }
-      });
-    });
 
-    // --- Resize Handler ---
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        const wasRecording = isRecording;
-        if (wasRecording) {
-          stopRecording();
-          showStatus("Resized - Recording stopped.", 5000);
-        } else {
-          showStatus("Resizing...", 1000);
+        // Handle changes in line color pickers
+        function handleLineColorChange(event) {
+            const index = parseInt(event.target.dataset.lineIndex);
+            const colorIndex = parseInt(event.target.dataset.colorIndex);
+            if (colorIndex === 1) {
+                lineStyles[index].color1 = event.target.value;
+                 // If not in gradient mode, also update color2 to match
+                 if (lineStyles[index].mode === 'solid') {
+                     lineStyles[index].color2 = event.target.value;
+                     // Visually update the (hidden) second picker for consistency
+                     const picker2 = lineColorsContainer.querySelector(`input[data-line-index="${index}"][data-color-index="2"]`);
+                     if(picker2) picker2.value = event.target.value;
+                 }
+            } else {
+                lineStyles[index].color2 = event.target.value;
+            }
+            drawEffect();
         }
-        pauseAnimation();
-        updateStateFromUI();
-        resizeCanvas();
-        initializeCircles();
-        drawFrame();
 
-        isPaused = true;
-        playBtn.disabled = false;
-        pauseBtn.disabled = true;
-        startRecordBtn.disabled = true;
-        stopRecordBtn.disabled = true;
-        downloadWebmBtn.disabled = true;
-        downloadMp4Btn.disabled = true;
-
-        if (!wasRecording) {
-          showStatus("Resized. Press Play.");
+        // Handle toggling gradient mode for a line
+        function handleLineGradientToggle(event) {
+            const index = parseInt(event.target.dataset.lineIndex);
+            const isChecked = event.target.checked;
+            lineStyles[index].mode = isChecked ? 'gradient' : 'solid';
+            // If switching to solid, make color2 match color1
+            if (!isChecked) {
+                 lineStyles[index].color2 = lineStyles[index].color1;
+                 const picker2 = lineColorsContainer.querySelector(`input[data-line-index="${index}"][data-color-index="2"]`);
+                 if(picker2) picker2.value = lineStyles[index].color1;
+            }
+            // Toggle visibility of the second color picker controls
+            const controls = event.target.closest('.flex').querySelector('.gradient-controls');
+            if (controls) {
+                controls.classList.toggle('active', isChecked);
+            }
+            drawEffect();
         }
-      }, 250);
-    });
 
-    // --- Initial Setup ---
-    window.onload = () => {
-      updateStateFromUI();
-      resizeCanvas();
-      initializeCircles();
-      drawFrame();
-      isPaused = true;
+        // Handle toggling gradient mode for background
+        function handleBgGradientToggle(event) {
+            const isChecked = event.target.checked;
+            bgStyle.mode = isChecked ? 'gradient' : 'solid';
+            bgGradientControls.classList.toggle('active', isChecked);
+            drawEffect();
+        }
 
-      playBtn.disabled = false;
-      pauseBtn.disabled = true;
-      startRecordBtn.disabled = true;
-      stopRecordBtn.disabled = true;
-      downloadWebmBtn.disabled = true;
-      downloadMp4Btn.disabled = true;
+        // Resize canvas based on container width
+        function resizeCanvas() {
+            const containerWidth = canvas.parentElement.offsetWidth;
+            canvas.width = Math.min(containerWidth, 900); // Max width 900px
+            canvas.height = 450; // Slightly taller canvas
+            drawEffect();
+        }
 
-      showStatus("Ready. Press Play.");
-    };
+        // Calculate total width for a single line of text
+        function calculateTextWidth(text, fontSize, spacing) {
+            const currentFont = ctx.font;
+            ctx.font = `${fontSize}px Poppins`;
+            let totalWidth = 0;
+            for (let i = 0; i < text.length; i++) {
+                totalWidth += ctx.measureText(text[i]).width;
+                if (i < text.length - 1) {
+                    totalWidth += spacing;
+                }
+            }
+            ctx.font = currentFont;
+            return totalWidth;
+        }
 
-    // --- Event Listeners for Play/Pause/Regenerate/Record ---
-    playBtn.addEventListener('click', playAnimation);
-    pauseBtn.addEventListener('click', pauseAnimation);
-    regenerateBtn.addEventListener('click', regenerateArt);
-    startRecordBtn.addEventListener('click', startRecording);
-    stopRecordBtn.addEventListener('click', stopRecording);
-  </script>
+        // Draw the wavy text effect
+        function drawEffect() {
+            // Get current values
+            const fontSize = parseInt(fontSizeInput.value);
+            const amplitude1 = parseFloat(amplitude1Input.value);
+            const frequency1 = parseFloat(frequency1Input.value);
+            const amplitude2 = parseFloat(amplitude2Input.value);
+            const frequency2 = parseFloat(frequency2Input.value);
+            const amplitude3 = parseFloat(amplitude3Input.value);
+            const frequency3 = parseFloat(frequency3Input.value);
+            const speed = parseFloat(speedInput.value);
+            const spacing = parseFloat(spacingInput.value);
+            const lineSpacingFactor = parseFloat(lineSpacingInput.value);
+
+            // --- Draw Background ---
+            if (bgStyle.mode === 'gradient') {
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height); // Top to Bottom
+                gradient.addColorStop(0, bgStyle.color1);
+                gradient.addColorStop(1, bgStyle.color2);
+                ctx.fillStyle = gradient;
+            } else {
+                ctx.fillStyle = bgStyle.color1; // Solid color
+            }
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // --- Draw Text Lines ---
+            ctx.font = `${fontSize}px Poppins`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+
+            const baseLineHeight = fontSize * lineSpacingFactor;
+            const totalTextHeight = textLines.length * baseLineHeight;
+            let startY = (canvas.height - totalTextHeight) / 2 + baseLineHeight / 2; // Center vertically
+
+            textLines.forEach((line, lineIndex) => {
+                const style = lineStyles[lineIndex];
+                const totalLineWidth = calculateTextWidth(line, fontSize, spacing);
+                const lineStartX = (canvas.width - totalLineWidth) / 2; // Center the line horizontally
+                const lineEndX = lineStartX + totalLineWidth;
+                const lineY = startY + lineIndex * baseLineHeight; // Calculate Y position for this line
+
+                // Set fill style (Solid or Gradient)
+                let fillStyle;
+                if (style.mode === 'gradient') {
+                    const gradient = ctx.createLinearGradient(lineStartX, 0, lineEndX, 0); // Left to Right
+                    gradient.addColorStop(0, style.color1);
+                    gradient.addColorStop(1, style.color2);
+                    fillStyle = gradient;
+                } else {
+                    fillStyle = style.color1; // Solid color
+                }
+                ctx.fillStyle = fillStyle;
+
+                // Add a slight offset based on line index for visual separation in waves
+                const linePhaseOffset = lineIndex * 0.6; // Increased offset slightly
+                let currentX = lineStartX;
+
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    const charWidth = ctx.measureText(char).width;
+
+                    // Calculate Y offset based on THREE waves + time + line offset
+                    const yOffset1 = amplitude1 * Math.sin(frequency1 * currentX + time * speed * 5 + linePhaseOffset);
+                    const yOffset2 = amplitude2 * Math.sin(frequency2 * currentX + time * speed * 8 + linePhaseOffset * 1.2); // Slightly different offset interaction
+                    const yOffset3 = amplitude3 * Math.sin(frequency3 * currentX + time * speed * 4 + linePhaseOffset * 0.8); // Third wave
+                    const currentY = lineY + yOffset1 + yOffset2 + yOffset3;
+
+                    // Draw character using the determined fillStyle
+                    ctx.fillText(char, currentX, currentY);
+                    currentX += charWidth + spacing;
+                }
+            });
+        }
+
+        // Animation loop
+        function animate() {
+            time += 0.1; // Increment time
+            drawEffect(); // Redraw
+
+            // GIF Recording Logic
+            if (isRecording) {
+                const now = Date.now();
+                if (now - recordingStartTime < GIF_DURATION) {
+                    gifRecorder.addFrame(ctx, { copy: true, delay: GIF_FRAME_DELAY });
+                } else {
+                    stopGifRecording(); // Time's up
+                }
+            }
+
+            animationFrameId = requestAnimationFrame(animate); // Request next frame
+        }
+
+        // Update displayed values for sliders
+        function updateSliderValues() {
+            fontSizeValueSpan.textContent = fontSizeInput.value;
+            amplitude1ValueSpan.textContent = parseFloat(amplitude1Input.value).toFixed(1);
+            frequency1ValueSpan.textContent = parseFloat(frequency1Input.value).toFixed(3);
+            amplitude2ValueSpan.textContent = parseFloat(amplitude2Input.value).toFixed(1);
+            frequency2ValueSpan.textContent = parseFloat(frequency2Input.value).toFixed(3);
+            amplitude3ValueSpan.textContent = parseFloat(amplitude3Input.value).toFixed(1); // New Wave 3
+            frequency3ValueSpan.textContent = parseFloat(frequency3Input.value).toFixed(3); // New Wave 3
+            speedValueSpan.textContent = parseFloat(speedInput.value).toFixed(3);
+            spacingValueSpan.textContent = spacingInput.value;
+            lineSpacingValueSpan.textContent = parseFloat(lineSpacingInput.value).toFixed(1);
+        }
+
+        // --- Download Functions (Identical to previous version) ---
+
+        function downloadPNG() {
+            const dataURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'wavy-text.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function startGifRecording() {
+            if (typeof GIF === 'undefined') { alert('GIF library not loaded.'); return; }
+            if (isRecording) return;
+
+            isRecording = true;
+            recordingStartTime = Date.now();
+            recordGifBtn.disabled = true;
+            stopGifBtn.style.display = 'inline-block';
+            loadingIndicator.style.display = 'none';
+
+            // Use current background for GIF background
+            let gifBackground = '#ffffff'; // Default white
+             if (bgStyle.mode === 'solid') {
+                 gifBackground = bgStyle.color1;
+             } else {
+                 // Can't directly use gradient in GIF background, use start color
+                  gifBackground = bgStyle.color1;
+                  console.warn("GIF background does not support gradients. Using start color.");
+             }
+
+
+            gifRecorder = new GIF({
+                workers: 2, quality: 10,
+                workerScript: window.GIF_WORKER_PATH,
+                width: canvas.width, height: canvas.height,
+                background: gifBackground // Use determined background
+            });
+
+            gifRecorder.on('finished', function(blob) {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'wavy-text.gif';
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                isRecording = false; recordGifBtn.disabled = false; stopGifBtn.style.display = 'none';
+                loadingIndicator.style.display = 'none'; gifRecorder = null;
+            });
+
+             gifRecorder.on('progress', function(p) {
+                loadingIndicator.textContent = `Processing GIF: ${Math.round(p * 100)}%`;
+            });
+
+            console.log("GIF recording started...");
+        }
+
+         function stopGifRecording() {
+            if (!isRecording || !gifRecorder) return;
+            console.log("Stopping GIF recording and rendering...");
+            isRecording = false; recordGifBtn.disabled = true; stopGifBtn.style.display = 'none';
+            loadingIndicator.textContent = 'Processing GIF: 0%';
+            loadingIndicator.style.display = 'inline-block';
+            gifRecorder.render();
+        }
+
+
+        // --- Event Listeners ---
+        textInput.addEventListener('input', () => { updateLineColorPickers(); drawEffect(); });
+        // Sliders
+        [fontSizeInput, amplitude1Input, frequency1Input, amplitude2Input, frequency2Input, amplitude3Input, frequency3Input, speedInput, spacingInput, lineSpacingInput].forEach(input => {
+            input.addEventListener('input', () => { updateSliderValues(); drawEffect(); });
+        });
+        // Background Color Controls
+        bgColor1Input.addEventListener('input', (e) => { bgStyle.color1 = e.target.value; if(bgStyle.mode === 'solid') bgStyle.color2 = e.target.value; drawEffect(); });
+        bgColor2Input.addEventListener('input', (e) => { bgStyle.color2 = e.target.value; drawEffect(); });
+        bgGradientToggle.addEventListener('change', handleBgGradientToggle);
+        // Download Buttons
+        downloadPngBtn.addEventListener('click', downloadPNG);
+        recordGifBtn.addEventListener('click', startGifRecording);
+        stopGifBtn.addEventListener('click', stopGifRecording);
+        // Resize
+        window.addEventListener('resize', resizeCanvas);
+
+        // --- Initial Setup ---
+        async function initialize() {
+            try {
+                await document.fonts.load('1em Poppins');
+                console.log('Poppins font loaded.');
+            } catch (err) {
+                console.error('Font loading error:', err);
+            } finally {
+                // Set initial state from default values
+                bgStyle.color1 = bgColor1Input.value;
+                bgStyle.color2 = bgColor2Input.value;
+                bgStyle.mode = bgGradientToggle.checked ? 'gradient' : 'solid';
+                bgGradientControls.classList.toggle('active', bgGradientToggle.checked);
+
+                updateSliderValues();
+                updateLineColorPickers(); // Initialize line colors based on default text & styles
+                resizeCanvas(); // Initial resize and draw
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                animate(); // Start animation
+            }
+        }
+
+        window.onload = initialize;
+
+    </script>
+
 </body>
 </html>
