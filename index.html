@@ -3,278 +3,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book an Appointment</title>
+    <title>Website Plan Preview: Daisy MD Care</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
     <style>
+        /* Define custom font families for Tailwind */
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f7f8f2; /* Soft Cream */
+            color: #0e3a47; /* Deep Teal */
         }
-        /* Style for selected slot */
-        .selected-slot {
-            background-color: #3b82f6 !important; /* blue-500 */
-            color: white !important;
-            border-color: #2563eb !important; /* blue-600 */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600; /* Semi Bold */
         }
-        /* Simple transition for buttons */
-        .slot-button, #bookButton {
-            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        /* Custom styles for Action Needed sections */
+        .action-needed {
+            background-color: rgba(30, 175, 208, 0.1); /* Lighter Bright Aqua */
+            border: 1px solid #1eafd0; /* Bright Aqua border */
+            padding: 1.5rem; /* p-6 */
+            margin-top: 1.5rem; /* mt-6 */
+            border-radius: 0.5rem; /* rounded-lg */
         }
-        /* Hide elements initially */
-        #timeSlotsContainer, #bookingForm, #confirmationMessage, #errorMessage {
-            display: none;
+        /* Or use a Deep Teal outline */
+        .action-needed-alt {
+            border: 2px solid #0e3a47; /* Deep Teal border */
+            padding: 1.5rem; /* p-6 */
+            margin-top: 1.5rem; /* mt-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+        }
+        /* Style for CTA buttons */
+        .cta-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem; /* py-3 px-6 */
+            background-color: #1eafd0; /* Bright Aqua */
+            color: #ffffff; /* White */
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600; /* Semi Bold */
+            font-size: 1rem; /* 16px */
+            border-radius: 0.375rem; /* rounded-md */
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #0e3a47; /* Deep Teal on hover */
+        }
+        .cta-button-secondary {
+            background-color: #0e3a47; /* Deep Teal */
+        }
+         .cta-button-secondary:hover {
+            background-color: #6dd1ca; /* Mint Green */
+            color: #0e3a47;
+        }
+        /* Max width container */
+        .content-container {
+            max-width: 1200px; /* Approx 1140-1200px */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /* Section padding */
+        section {
+            padding-top: 5rem; /* py-20 (80px) */
+            padding-bottom: 5rem; /* py-20 (80px) */
+        }
+        /* Page padding */
+        .page-padding {
+             padding-left: 2rem; /* px-8 (32px mobile) */
+             padding-right: 2rem; /* px-8 (32px mobile) */
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+             .page-padding {
+                padding-left: 4rem; /* md:px-16 (64px desktop) */
+                padding-right: 4rem; /* md:px-16 (64px desktop) */
+             }
+             section {
+                padding-top: 6rem; /* Approx 96px */
+                padding-bottom: 6rem; /* Approx 96px */
+             }
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="antialiased">
 
-    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg w-full max-w-lg">
-        <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">Book a 30-Minute Slot</h1>
+    <div class="content-container page-padding">
 
-        <div class="mb-6">
-            <label for="dateSelector" class="block text-sm font-medium text-gray-700 mb-2">Select a Date:</label>
-            <input type="date" id="dateSelector" name="dateSelector" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-        </div>
+        <section id="cover" class="text-center min-h-screen flex flex-col justify-center items-center">
+            <h1 class="text-5xl md:text-6xl font-semibold text-[#0e3a47] mb-4">Website Plan for Daisy MD Care</h1>
+            <p class="text-xl md:text-2xl text-[#0e3a47] opacity-80">Developed by Poppy Marketing & Consulting</p>
+            <div class="mt-8 space-x-4">
+                <span class="inline-block w-8 h-8 bg-[#0e3a47] rounded-full"></span>
+                <span class="inline-block w-8 h-8 bg-[#6dd1ca] rounded-full"></span>
+                <span class="inline-block w-8 h-8 bg-[#1eafd0] rounded-full"></span>
+            </div>
+        </section>
 
-        <div id="timeSlotsContainer" class="mb-6">
-            <h2 class="text-lg font-semibold text-gray-700 mb-3">Available Slots:</h2>
-            <div id="timeSlotsGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        <section id="branding-visuals">
+            <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Our Foundation: Brand Identity</h2>
+            <p class="text-lg mb-8 text-[#0e3a47]/90">This plan is built upon Daisy MD Care's distinct brand identity to create a consistent, nurturing, and professional online presence that resonates with clients.</p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-2xl text-[#0e3a47] mb-4">Typography</h3>
+                    <p class="mb-2"><strong class="font-semibold font-[Poppins]">Headers:</strong> Poppins Semi Bold <em class="text-[#0e3a47]/70 block">(Clean, Modern, Approachable Authority)</em></p>
+                    <p><strong class="font-semibold font-[Open Sans]">Body Text:</strong> Open Sans Regular <em class="text-[#0e3a47]/70 block">(Readable, Friendly, Clear)</em></p>
                 </div>
-        </div>
+                <div>
+                    <h3 class="text-2xl text-[#0e3a47] mb-4">Color Palette</h3>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-[#0e3a47] rounded-lg shadow mb-1"></div>
+                            <span class="text-xs block">Deep Teal<br>#0e3a47</span>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-[#f7f8f2] rounded-lg shadow border border-[#dfdfdf] mb-1"></div>
+                            <span class="text-xs block">Soft Cream<br>#f7f8f2</span>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-[#6dd1ca] rounded-lg shadow mb-1"></div>
+                            <span class="text-xs block">Mint Green<br>#6dd1ca</span>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-[#dfdfdf] rounded-lg shadow mb-1"></div>
+                            <span class="text-xs block">Light Grey<br>#dfdfdf</span>
+                        </div>
+                         <div class="text-center">
+                            <div class="w-16 h-16 bg-[#1eafd0] rounded-lg shadow mb-1"></div>
+                            <span class="text-xs block">Bright Aqua<br>#1eafd0</span>
+                        </div>
+                         <div class="text-center">
+                            <div class="w-16 h-16 bg-[#000000] rounded-lg shadow mb-1"></div>
+                            <span class="text-xs block">Black<br>#000000</span>
+                        </div>
+                         <div class="text-center">
+                            <div class="w-16 h-16 bg-[#ffffff] rounded-lg shadow border border-[#dfdfdf] mb-1"></div>
+                            <span class="text-xs block">White<br>#ffffff</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div class="mt-8">
+                <h3 class="text-2xl text-[#0e3a47] mb-4">Visual Style</h3>
+                <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li>Overall Feel: Clean, modern aesthetic with a soft, nurturing touch.</li>
+                    <li>Space: Generous use of white space (Soft Cream background) for a light, uncluttered, and breathable feel.</li>
+                    <li>Elements: Minimal, softly rounded icons. Avoid heavy textures or complex gradients.</li>
+                    <li>Photography: Authentic, real-life photography featuring natural light (especially for Before & Afters).</li>
+                </ul>
+            </div>
+        </section>
 
-        <div id="bookingForm" class="space-y-4 mb-6">
-             <p id="selectedSlotText" class="text-center font-medium text-blue-600"></p>
-             <div>
-                <label for="userName" class="block text-sm font-medium text-gray-700">Name:</label>
-                <input type="text" id="userName" name="userName" required class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-             </div>
-             <div>
-                <label for="userEmail" class="block text-sm font-medium text-gray-700">Email:</label>
-                <input type="email" id="userEmail" name="userEmail" required class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-             </div>
-             <button id="bookButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                 Book Appointment
-             </button>
-        </div>
+        <hr class="border-t border-[#dfdfdf] my-12">
 
-        <div id="confirmationMessage" class="mt-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-md text-center">
+        <section id="branding-structure">
+             <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Crafting the Experience: Layout & Typography</h2>
+             <p class="text-lg mb-8 text-[#0e3a47]/90">A well-defined structure and clear typographic hierarchy ensure visitors can navigate easily and absorb information effectively.</p>
+             <div class="grid md:grid-cols-2 gap-8">
+                 <div>
+                    <h3 class="text-2xl text-[#0e3a47] mb-4">Typography Size Recommendations</h3>
+                    <ul class="space-y-2 text-[#0e3a47]/90">
+                        <li><strong class="font-semibold font-[Poppins]">Hero Headline:</strong> 48–60px, Semi Bold</li>
+                        <li><strong class="font-semibold font-[Open Sans]">Subhead/Tagline:</strong> 20–24px, Regular</li>
+                        <li><strong class="font-semibold font-[Poppins]">Section Headings:</strong> 32–36px, Semi Bold</li>
+                        <li><strong class="font-semibold font-[Open Sans]">Body Text:</strong> 16–18px, Regular</li>
+                        <li><strong class="font-semibold font-[Open Sans]">CTA Buttons:</strong> 16px, Semi Bold (Example: <a href="#" class="cta-button text-sm">Button Text</a>)</li>
+                    </ul>
+                 </div>
+                 <div>
+                    <h3 class="text-2xl text-[#0e3a47] mb-4">Layout & Spacing</h3>
+                    <ul class="space-y-2 text-[#0e3a47]/90">
+                        <li><strong class="font-semibold">Grid System:</strong> Flexible 12-column grid (32px gutters).</li>
+                        <li><strong class="font-semibold">Content Width:</strong> Max width 1140–1200px.</li>
+                        <li><strong class="font-semibold">Section Spacing:</strong> 80–100px top/bottom padding.</li>
+                        <li><strong class="font-semibold">Page Padding:</strong> 32px (mobile), 64px (desktop) side padding.</li>
+                    </ul>
+                 </div>
+             </div>
+        </section>
+
+        <hr class="border-t border-[#dfdfdf] my-12">
+
+        <section id="homepage-layout">
+            <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Homepage Layout Overview: Your Digital Front Door</h2>
+            <p class="text-lg mb-6 text-[#0e3a47]/90">The homepage serves as the primary entry point, designed to immediately convey Daisy MD Care's value proposition, build trust, and guide visitors towards their goals.</p>
+            <div class="space-y-6 border border-[#dfdfdf] p-6 rounded-lg bg-white/50 shadow-sm">
+                <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] border-b pb-2 mb-4">Homepage Sections:</h3>
+                <ol class="list-decimal list-inside space-y-4 text-[#0e3a47]/90">
+                    <li><strong>Hero Section:</strong> Headline, Subtext, Primary CTA Button.</li>
+                    <li><strong>Before & After Video Showcase:</strong> Prominent video placement. <em class="text-xs block text-[#0e3a47]/60">(Placeholder below)</em>
+                        <img src="https://placehold.co/600x300/f7f8f2/0e3a47?text=B%26A+Video+Placeholder" alt="Before and After Video Placeholder" class="mt-2 rounded-md border border-[#dfdfdf]">
+                    </li>
+                    <li><strong>Company Introduction:</strong> Brief overview, link to "About Us".</li>
+                    <li><strong>Our Approach:</strong> Highlight guarantees, 2-week results, personalized care.</li>
+                    <li><strong>Services Preview:</strong> Tease 2-3 core services with icons/brief descriptions, CTA to "Explore All Services".</li>
+                    <li><strong>Products Preview:</strong> Spotlight remote kits, cruelty-free formula, CTA to "Shop Our Products".</li>
+                    <li><strong>Our Clients Preview:</strong> Testimonials snippet, mini B&A gallery, CTA to "See More Results".</li>
+                    <li><strong>FAQ Link:</strong> Subtle link in footer or small dedicated section.</li>
+                    <li><strong>Locations Preview:</strong> Brief mention, dynamic CTAs ("Get Directions", "Text Directions").</li>
+                </ol>
+             </div>
+
+            <div class="action-needed">
+                <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] mb-3">Action Needed by Daisy MD Care: Homepage Content</h3>
+                <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Approach Section Copy:</strong> Finalized text detailing the unique approach (guaranteed results, 2-week visibility, personalization).</li>
+                    <li><strong>Featured Services Selection:</strong> Identify the 2-3 core services for the preview.</li>
+                    <li><strong>Featured Products Selection:</strong> Specify key products (e.g., Level One Kit) for the preview.</li>
+                    <li><strong>Homepage Banners/Highlights:</strong> Details of any current promotions or special announcements.</li>
+                </ul>
+            </div>
+        </section>
+
+        <hr class="border-t border-[#dfdfdf] my-12">
+
+        <section id="about-us-layout">
+            <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Single Page Layout: About Us - Our Journey & Values</h2>
+            <p class="text-lg mb-6 text-[#0e3a47]/90">This page deepens the connection with visitors by sharing the history, milestones, and the people behind Daisy MD Care.</p>
+            <div class="space-y-4 border border-[#dfdfdf] p-6 rounded-lg bg-white/50 shadow-sm">
+                <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] border-b pb-2 mb-4">Key Sections:</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Introduction - A Legacy of Care:</strong> Nostalgic narrative (42-year history), potentially featuring early photos.</li>
+                    <li><strong>Timeline of Evolution:</strong> Visually engaging timeline of key milestones.</li>
+                    <li><strong>Accomplishments & Recognition:</strong> Highlighting awards, certifications, success metrics.</li>
+                    <li><strong>(Optional) Meet the Team:</strong> Profiles/photos of key staff.</li>
+                    <li><strong>Call to Action (CTA):</strong> Buttons like "Shop Our Products" or "Book a Consultation".</li>
+                 </ul>
             </div>
 
-        <div id="errorMessage" class="mt-6 p-4 bg-red-100 border border-red-300 text-red-800 rounded-md text-center">
+            <div class="action-needed-alt"> <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] mb-3">Action Needed by Daisy MD Care: About Us Content</h3>
+                <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Historical Photos:</strong> Provide available early photos.</li>
+                    <li><strong>Timeline Details:</strong> Compile key dates, events, milestones.</li>
+                    <li><strong>Accomplishments List:</strong> Provide details on achievements.</li>
+                    <li><strong>(If including Team Section):</strong> Team member photos, titles, bios.</li>
+                </ul>
             </div>
+        </section>
 
-    </div>
+        <section id="services-layout">
+            <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Single Page Layout: Services - Our Expertise & Approach</h2>
+             <p class="text-lg mb-6 text-[#0e3a47]/90">This page provides comprehensive details about the services offered, the methodology employed, and the expected client experience.</p>
+             <div class="space-y-4 border border-[#dfdfdf] p-6 rounded-lg bg-white/50 shadow-sm">
+                 <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] border-b pb-2 mb-4">Key Sections:</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>In-Depth Personalized Approach:</strong> Detailed explanation of methodology.</li>
+                    <li><strong>Technology & Techniques:</strong> Information on advanced methods used.</li>
+                    <li><strong>Conditions We Treat:</strong> Clear, organized list of conditions addressed.</li>
+                    <li><strong>The Client Journey - Milestones:</strong> Outline expectations (Week 1, Week 2, Month 1).</li>
+                    <li><strong>Call to Action (CTA):</strong> Primarily "Book a Consultation".</li>
+                 </ul>
+             </div>
+             <div class="action-needed">
+                 <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] mb-3">Action Needed by Daisy MD Care: Services Content</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Detailed Approach Description:</strong> Comprehensive text on service methodology.</li>
+                    <li><strong>Technology/Technique Details:</strong> Info on specific tech used.</li>
+                    <li><strong>Comprehensive Service/Condition List:</strong> Complete list and descriptions.</li>
+                    <li><strong>Client Journey Details:</strong> Confirmation/refinement of milestones.</li>
+                 </ul>
+             </div>
+        </section>
 
-    <script>
-        const dateSelector = document.getElementById('dateSelector');
-        const timeSlotsContainer = document.getElementById('timeSlotsContainer');
-        const timeSlotsGrid = document.getElementById('timeSlotsGrid');
-        const bookingForm = document.getElementById('bookingForm');
-        const selectedSlotText = document.getElementById('selectedSlotText');
-        const bookButton = document.getElementById('bookButton');
-        const confirmationMessage = document.getElementById('confirmationMessage');
-        const errorMessage = document.getElementById('errorMessage');
-        const userNameInput = document.getElementById('userName');
-        const userEmailInput = document.getElementById('userEmail');
+        <section id="products-layout">
+            <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Single Page Layout: Products - Your At-Home Care Regimen</h2>
+            <p class="text-lg mb-6 text-[#0e3a47]/90">This page showcases the curated, cruelty-free products available to clients, supporting their treatment journey.</p>
+             <div class="space-y-4 border border-[#dfdfdf] p-6 rounded-lg bg-white/50 shadow-sm">
+                 <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] border-b pb-2 mb-4">Key Sections:</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Featured Product Kits:</strong> Level One, Sensitive Version, Discoloration Kit, etc.</li>
+                    <li><strong>Detailed Product Information:</strong> Imagery, benefits, ingredients, usage instructions.</li>
+                    <li><strong>Visual Usage Guides:</strong> Infographics or embedded videos. <em class="text-xs block text-[#0e3a47]/60">(Placeholder below)</em>
+                        <img src="https://placehold.co/300x200/f7f8f2/0e3a47?text=Product+Video" alt="Product Video Placeholder" class="mt-2 rounded-md border border-[#dfdfdf]">
+                    </li>
+                    <li><strong>Exclusive Customer Portal Mention:</strong> Benefits and access method.</li>
+                    <li><strong>Call to Action (CTA):</strong> "Shop Now" and/or "Book a Consultation".</li>
+                 </ul>
+             </div>
+             <div class="action-needed-alt">
+                 <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] mb-3">Action Needed by Daisy MD Care: Products Content</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Product Usage Instructions:</strong> Detailed steps for text/visuals.</li>
+                    <li><strong>Confirmed Product List & Details:</strong> Final list, descriptions, benefits, ingredients, pricing.</li>
+                    <li><strong>Product Imagery:</strong> High-resolution photos.</li>
+                    <li><strong>Customer Portal Access Info:</strong> Details for client access.</li>
+                 </ul>
+             </div>
+        </section>
 
-        let selectedSlot = null;
-        let selectedDate = null;
+        <section id="clients-layout">
+            <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Single Page Layout: Clients - Real Results, Real People</h2>
+            <p class="text-lg mb-6 text-[#0e3a47]/90">This page builds credibility and trust by showcasing authentic client experiences and transformations.</p>
+             <div class="space-y-4 border border-[#dfdfdf] p-6 rounded-lg bg-white/50 shadow-sm">
+                 <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] border-b pb-2 mb-4">Key Sections:</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Testimonial Showcase:</strong> Curated text/video testimonials.</li>
+                    <li><strong>Before & After Galleries:</strong> Organized, high-quality, consented photos. <em class="text-xs block text-[#0e3a47]/60">(Placeholder below)</em>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                            <img src="https://placehold.co/200x200/f7f8f2/0e3a47?text=B%26A+1" alt="B&A Placeholder 1" class="rounded-md border border-[#dfdfdf]">
+                            <img src="https://placehold.co/200x200/f7f8f2/0e3a47?text=B%26A+2" alt="B&A Placeholder 2" class="rounded-md border border-[#dfdfdf]">
+                            <img src="https://placehold.co/200x200/f7f8f2/0e3a47?text=B%26A+3" alt="B&A Placeholder 3" class="rounded-md border border-[#dfdfdf]">
+                            <img src="https://placehold.co/200x200/f7f8f2/0e3a47?text=B%26A+4" alt="B&A Placeholder 4" class="rounded-md border border-[#dfdfdf]">
+                        </div>
+                    </li>
+                    <li><strong>Submit Your Testimonial Feature:</strong> User-friendly form.</li>
+                    <li><strong>Incentive Highlight:</strong> Clear 20% discount offer.</li>
+                    <li><strong>Call to Action (CTA):</strong> "Book Your Consultation" or "Share Your Success Story".</li>
+                 </ul>
+             </div>
+             <div class="action-needed">
+                 <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] mb-3">Action Needed by Daisy MD Care: Clients Content</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Gather Testimonials:</strong> Collect and curate testimonials (ensure rights).</li>
+                    <li><strong>Compile Before & After Photos:</strong> Gather high-quality, consistent photos with explicit client consent.</li>
+                 </ul>
+             </div>
+        </section>
 
-        // --- Configuration ---
-        const startTime = 9; // 9 AM
-        const endTime = 17; // 5 PM (exclusive)
-        const slotDuration = 30; // minutes
-        const businessDays = [1, 2, 3, 4, 5]; // Monday to Friday (0=Sun, 6=Sat)
-        // --- End Configuration ---
+        <section id="locations-layout">
+            <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Single Page Layout: Locations - Visit Us</h2>
+            <p class="text-lg mb-6 text-[#0e3a47]/90">Providing clear, accessible information for clients planning to visit a physical clinic.</p>
+             <div class="space-y-4 border border-[#dfdfdf] p-6 rounded-lg bg-white/50 shadow-sm">
+                 <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] border-b pb-2 mb-4">Key Sections:</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Individual Clinic Sections:</strong> Dedicated area per location.</li>
+                    <li><strong>Visual Appeal:</strong> High-quality photos of each clinic. <em class="text-xs block text-[#0e3a47]/60">(Placeholder below)</em>
+                         <img src="https://placehold.co/400x250/f7f8f2/0e3a47?text=Clinic+Photo" alt="Clinic Photo Placeholder" class="mt-2 rounded-md border border-[#dfdfdf]">
+                    </li>
+                    <li><strong>Essential Information:</strong> Address, Phone, Hours, Map Link per location.</li>
+                    <li><strong>Interactive Map:</strong> Embedded map showing all locations.</li>
+                    <li><strong>Convenience CTAs:</strong> "Get Directions", "Text Directions", "Save Contact Info".</li>
+                 </ul>
+             </div>
+             <div class="action-needed-alt">
+                 <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] mb-3">Action Needed by Daisy MD Care: Locations Content</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>High-Quality Clinic Photos:</strong> Provide recent photos for each location.</li>
+                    <li><strong>Verified Location Details:</strong> Confirm accurate address, phone, hours for all clinics.</li>
+                 </ul>
+             </div>
+        </section>
 
-        // Set minimum date to today
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-        const dd = String(today.getDate()).padStart(2, '0');
-        dateSelector.min = `${yyyy}-${mm}-${dd}`;
+        <section id="faq-layout">
+            <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Single Page Layout: FAQ - Your Questions Answered</h2>
+            <p class="text-lg mb-6 text-[#0e3a47]/90">Proactively addressing common questions to enhance user experience and reduce routine inquiries.</p>
+             <div class="space-y-4 border border-[#dfdfdf] p-6 rounded-lg bg-white/50 shadow-sm">
+                 <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] border-b pb-2 mb-4">Key Features:</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Logical Categorization:</strong> Grouped questions (First-Time Visitors, Treatments, Products, etc.).</li>
+                    <li><strong>Content Focus:</strong> Address questions for both new and existing customers.</li>
+                    <li><strong>Clear & Concise Answers:</strong> Direct, easy-to-understand responses.</li>
+                    <li><strong>(Optional) Search Functionality:</strong> Search bar for quick lookup.</li>
+                    <li><strong>Contact Prompt:</strong> Link to contact support if question isn't listed.</li>
+                 </ul>
+             </div>
+             <div class="action-needed">
+                 <h3 class="text-xl font-semibold font-[Poppins] text-[#0e3a47] mb-3">Action Needed by Daisy MD Care: FAQ Content</h3>
+                 <ul class="list-disc list-inside space-y-2 text-[#0e3a47]/90">
+                    <li><strong>Compile FAQ List:</strong> Provide comprehensive list of questions and their corresponding answers.</li>
+                 </ul>
+             </div>
+        </section>
 
-        // Event Listener for Date Selection
-        dateSelector.addEventListener('change', (event) => {
-            const dateValue = event.target.value;
-            if (!dateValue) {
-                hideAllSections();
-                return;
-            }
+        <hr class="border-t border-[#dfdfdf] my-12">
 
-            selectedDate = new Date(dateValue + 'T00:00:00'); // Ensure correct date parsing
-            const dayOfWeek = selectedDate.getDay();
+        <section id="design-recap">
+            <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Design Direction Overview: Ensuring Consistency & Clarity</h2>
+            <p class="text-lg mb-6 text-[#0e3a47]/90">This summarizes the core visual and structural principles guiding the website's design and development.</p>
+            <div class="space-y-4 text-[#0e3a47]/90">
+                <ul class="list-disc list-inside space-y-3">
+                    <li><strong>Layout System:</strong> 12-column grid, max-width (1140-1200px), section padding (80-100px), page padding (32px mobile, 64px desktop).</li>
+                    <li><strong>Typography:</strong> Consistent Poppins (Headers) & Open Sans (Body/CTAs) usage per size guidelines. Focus on readability.</li>
+                    <li><strong>Color Palette:</strong> Strategic use of Soft Cream (bg), Deep Teal (text), Mint Green/Light Grey (accents), Bright Aqua (highlights/CTAs). High contrast for accessibility.</li>
+                    <li><strong>Calls-to-Action (CTAs):</strong> Uniform style (Open Sans Semi Bold, 16px), clear text, prominent placement.</li>
+                    <li><strong>Photography:</strong> High-quality, authentic, natural light photos. Consistent B&A shots.</li>
+                    <li><strong>Visual Elements:</strong> Minimal, rounded icons. Subtle dividers/whitespace. Light backgrounds.</li>
+                    <li><strong>Accessibility:</strong> Strong contrast, readable fonts, logical structure.</li>
+                </ul>
+            </div>
+        </section>
 
-            // Reset UI
-            hideAllSections();
-            errorMessage.style.display = 'none';
-            errorMessage.textContent = '';
-            selectedSlot = null; // Reset selected slot when date changes
+        <hr class="border-t border-[#dfdfdf] my-12">
 
-            if (businessDays.includes(dayOfWeek)) {
-                generateTimeSlots(selectedDate);
-                timeSlotsContainer.style.display = 'block';
-            } else {
-                errorMessage.textContent = 'Sorry, appointments are only available on weekdays.';
-                errorMessage.style.display = 'block';
-            }
-        });
+        <section id="next-steps" class="text-center">
+            <h2 class="text-3xl md:text-4xl text-[#0e3a47] mb-8">Next Steps: Bringing the Vision to Life</h2>
+            <p class="text-lg mb-8 max-w-3xl mx-auto text-[#0e3a47]/90">We are thrilled about the opportunity to craft a compelling digital presence for Daisy MD Care! Here’s how we move forward together:</p>
+            <ol class="list-decimal list-inside text-left max-w-xl mx-auto space-y-3 mb-8 text-[#0e3a47]/90">
+                <li><strong>Client Review:</strong> Thoroughly review this Website Plan (preview).</li>
+                <li><strong>Provide Feedback & Content:</strong> Share feedback and begin gathering content/assets from the "Action Needed" sections.</li>
+                <li><strong>Plan Approval:</strong> Formally approve the strategic plan.</li>
+                <li><strong>Design Phase Kick-off:</strong> Poppy Marketing & Consulting begins visual mock-ups upon approval and asset receipt.</li>
+            </ol>
+            <p class="text-xl font-semibold text-[#0e3a47] mb-6">Thank you for entrusting Poppy Marketing & Consulting with this important project. We are excited to collaborate and look forward to your feedback!</p>
+            <a href="#" class="cta-button cta-button-secondary">Provide Feedback (Example Link)</a>
+        </section>
 
-        // Generate available time slots for the selected date
-        function generateTimeSlots(date) {
-            timeSlotsGrid.innerHTML = ''; // Clear previous slots
-            const now = new Date();
-            const isToday = date.toDateString() === now.toDateString();
+    </div> <footer class="bg-[#0e3a47] text-[#f7f8f2] py-8 mt-16">
+        <div class="content-container page-padding text-center text-sm opacity-80">
+            &copy; 2025 Daisy MD Care | Website Plan by Poppy Marketing & Consulting | Preview Only
+        </div>
+    </footer>
 
-            for (let hour = startTime; hour < endTime; hour++) {
-                for (let minute = 0; minute < 60; minute += slotDuration) {
-                    const slotTime = new Date(date);
-                    slotTime.setHours(hour, minute, 0, 0);
-
-                    // Skip past slots if the selected date is today
-                    if (isToday && slotTime < now) {
-                        continue;
-                    }
-
-                    const timeString = slotTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-                    const button = document.createElement('button');
-                    button.textContent = timeString;
-                    button.dataset.time = timeString; // Store time string
-                    button.dataset.datetime = slotTime.toISOString(); // Store full ISO time
-                    button.classList.add('slot-button', 'p-2', 'border', 'border-gray-300', 'rounded-md', 'text-sm', 'text-center', 'hover:bg-gray-200', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-1', 'focus:ring-blue-400');
-
-                    // --- SIMULATION: Randomly make some slots "unavailable" ---
-                    // In a real app, this would check a database
-                    if (Math.random() < 0.3) { // 30% chance of being unavailable
-                        button.disabled = true;
-                        button.classList.add('bg-gray-200', 'text-gray-400', 'cursor-not-allowed', 'line-through');
-                        button.classList.remove('hover:bg-gray-200');
-                    } else {
-                        button.addEventListener('click', handleSlotSelection);
-                    }
-                    // --- End Simulation ---
-
-                    timeSlotsGrid.appendChild(button);
-                }
-            }
-
-             if (timeSlotsGrid.children.length === 0) {
-                 errorMessage.textContent = 'No available slots for this day.';
-                 errorMessage.style.display = 'block';
-                 timeSlotsContainer.style.display = 'none';
-             }
-        }
-
-        // Handle clicks on time slot buttons
-        function handleSlotSelection(event) {
-            // Remove 'selected-slot' class from previously selected button
-            const previouslySelected = timeSlotsGrid.querySelector('.selected-slot');
-            if (previouslySelected) {
-                previouslySelected.classList.remove('selected-slot');
-            }
-
-            // Add 'selected-slot' class to the clicked button
-            const button = event.target;
-            button.classList.add('selected-slot');
-
-            selectedSlot = button.dataset.time; // Get the time string (e.g., "09:00 AM")
-            const selectedDateString = selectedDate.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-            selectedSlotText.textContent = `Selected: ${selectedSlot} on ${selectedDateString}`;
-            bookingForm.style.display = 'block'; // Show the form
-            confirmationMessage.style.display = 'none'; // Hide any previous confirmation
-            errorMessage.style.display = 'none'; // Hide any previous error
-        }
-
-        // Handle the final booking submission
-        bookButton.addEventListener('click', () => {
-            const name = userNameInput.value.trim();
-            const email = userEmailInput.value.trim();
-
-            if (!name || !email) {
-                displayError('Please enter both your name and email.');
-                return;
-            }
-
-            if (!validateEmail(email)) {
-                 displayError('Please enter a valid email address.');
-                 return;
-            }
-
-            if (!selectedSlot || !selectedDate) {
-                displayError('Please select a date and time slot first.');
-                return;
-            }
-
-            // --- !!! THIS IS WHERE THE BACKEND CALL WOULD HAPPEN !!! ---
-            // In a real application:
-            // 1. Send booking details (name, email, selectedDate, selectedSlot) to your server.
-            // 2. Server validates the slot is still available and saves the booking.
-            // 3. Server sends a confirmation email to the user and a notification email to you.
-            // 4. Server responds to the frontend with success or failure.
-
-            // --- Simulation ---
-            console.log('--- Booking Simulation ---');
-            console.log('Name:', name);
-            console.log('Email:', email);
-            console.log('Date:', selectedDate.toISOString().split('T')[0]);
-            console.log('Time:', selectedSlot);
-            console.log('--- Email Notification Simulated ---');
-            console.log(`Simulating email sent to you: New booking from ${name} (${email}) for ${selectedSlot} on ${selectedDate.toISOString().split('T')[0]}.`);
-            console.log(`Simulating confirmation email sent to ${email}.`);
-
-            // Show confirmation message on the page
-            const selectedDateString = selectedDate.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-            confirmationMessage.innerHTML = `
-                <p class="font-semibold">Appointment Booked!</p>
-                <p>Thank you, ${name}! Your appointment for <strong>${selectedSlot}</strong> on <strong>${selectedDateString}</strong> is confirmed.</p>
-                <p class="text-sm mt-2">(This is a simulation. In a real system, you would receive an email, and Ricardo would be notified.)</p>
-            `;
-            displayConfirmation();
-            // --- End Simulation ---
-        });
-
-        // Helper function to validate email format
-        function validateEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(String(email).toLowerCase());
-        }
-
-        // Helper function to display error messages
-        function displayError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            confirmationMessage.style.display = 'none';
-        }
-
-         // Helper function to display confirmation
-         function displayConfirmation() {
-            confirmationMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
-            bookingForm.style.display = 'none';
-            timeSlotsContainer.style.display = 'none'; // Optionally hide slots after booking
-            // Reset form fields
-            userNameInput.value = '';
-            userEmailInput.value = '';
-            // Reset selections
-            selectedSlot = null;
-            const currentSelectedButton = timeSlotsGrid.querySelector('.selected-slot');
-             if (currentSelectedButton) {
-                 currentSelectedButton.classList.remove('selected-slot');
-             }
-         }
-
-         // Helper function to hide dynamic sections
-         function hideAllSections() {
-            timeSlotsContainer.style.display = 'none';
-            bookingForm.style.display = 'none';
-            confirmationMessage.style.display = 'none';
-            // Keep error message separate as it might need to show independently
-         }
-
-    </script>
+</body>
+</html>
 
 </body>
 </html>
